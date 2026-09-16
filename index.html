@@ -3,256 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사역 리소스 허브 | 목자 & 셀리더</title>
+    <title>구리지구촌교회 목장 | 목장 모임 가이드 & 셀방 예약</title>
+    <!-- Tailwind CSS & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 노션 마크다운 파서 (marked.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; }
-        
-        /* 배경 그라데이션 디자인 */
-        body::before {
-            content: "";
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #f1f5f9; 
+        }
+
+        .ambient-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-                        radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%);
+            background: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
             z-index: -1;
         }
 
-        .glass-morphism {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        .step-card {
+            background: #ffffff;
+            transition: background-color 0.15s ease;
         }
 
         .video-container {
             position: relative;
             width: 100%;
             aspect-ratio: 16 / 9;
-            background-color: #000;
-            border-radius: 1.25rem;
+            background-color: #0f172a;
+            border-radius: 0.85rem;
             overflow: hidden;
         }
 
-        #youtubePlayerFrame {
+        #sermonPlayerFrame {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
         }
 
-        /* 아코디언 애니메이션 */
         .accordion-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-            background-color: white;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+            opacity: 0;
         }
-
-        .accordion-item.active .accordion-content {
-            max-height: 4000px; 
-            padding-bottom: 2rem;
+        .step-card.active .accordion-content {
+            max-height: 6000px;
+            opacity: 1;
         }
-
-        .accordion-header {
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
         .chevron-icon {
-            transition: transform 0.3s ease;
+            transition: transform 0.25s ease;
         }
-
-        .accordion-item.active .chevron-icon {
+        .step-card.active .chevron-icon {
             transform: rotate(180deg);
         }
 
-        .content-body {
-            line-height: 1.9;
+        .notion-rendered {
+            color: #334155;
+            font-size: 0.925rem;
+            line-height: 1.8;
             word-break: keep-all;
-            letter-spacing: -0.01em;
-            white-space: pre-wrap;
+        }
+        .notion-rendered p { margin-bottom: 0.75rem; }
+        .notion-rendered p:last-child { margin-bottom: 0; }
+        .notion-rendered h1, .notion-rendered h2, .notion-rendered h3 {
+            color: #0f172a;
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+        }
+        .notion-rendered h1 { font-size: 1.25rem; }
+        .notion-rendered h2 { font-size: 1.15rem; }
+        .notion-rendered h3 { font-size: 1.025rem; }
+        .notion-rendered ul {
+            list-style-type: disc;
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .notion-rendered ol {
+            list-style-type: decimal;
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .notion-rendered li {
+            margin-bottom: 0.3rem;
+            padding-left: 0.2rem;
+        }
+        .notion-rendered blockquote {
+            border-left: 3px solid #6366f1;
+            background-color: #f8fafc;
+            padding: 0.5rem 0.85rem;
+            margin: 0.75rem 0;
+            color: #475569;
+            border-radius: 0 0.4rem 0.4rem 0;
+        }
+        .notion-rendered strong {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .notion-rendered hr {
+            border: 0;
+            border-top: 1px dashed #cbd5e1;
+            margin: 1rem 0;
+        }
+
+        .room-label {
+            background-color: #f8fafc;
+            font-weight: 700;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+        .cell-btn {
+            width: 100%;
+            padding: 7px 4px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #ffffff;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .cell-btn:hover:not(:disabled) {
+            background-color: #eef2ff;
+            border-color: #6366f1;
+            color: #4f46e5;
+        }
+        .cell-btn.reserved {
+            background-color: #ef4444 !important;
+            color: white !important;
+            cursor: not-allowed;
+            font-weight: 600;
+            border-color: #dc2626;
+        }
+        .cell-btn.fixed {
+            background-color: #64748b !important;
+            color: white !important;
+            cursor: not-allowed;
+            font-weight: 600;
+            border-color: #475569;
+        }
+        .cell-btn.expired {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
         }
 
         html { scroll-behavior: smooth; }
     </style>
 </head>
-<body class="text-slate-900 min-h-screen pb-20">
+<body class="text-slate-900 min-h-screen pb-16">
+    <div class="ambient-bg"></div>
 
-    <!-- 상단 네비게이션 바 (복구 및 링크 수정) -->
-    <nav class="sticky top-0 z-50 glass-morphism">
-        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.reload()">
-                <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg">
-                    <i data-lucide="church" class="text-white w-5 h-5"></i>
+    <!-- 1. 메인 사용자 화면 -->
+    <main id="userView" class="max-w-3xl mx-auto px-4 pt-5">
+        
+        <!-- 로딩 스켈레톤 -->
+        <div id="loading" class="space-y-4 py-2">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 animate-pulse">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-200"></div>
+                    <div class="space-y-1.5">
+                        <div class="w-20 h-3 bg-slate-200 rounded"></div>
+                        <div class="w-36 h-5 bg-slate-200 rounded"></div>
+                    </div>
                 </div>
-                <h1 class="font-bold text-lg tracking-tight hidden sm:block text-slate-800">사역 리소스 허브</h1>
+                <div class="flex gap-2">
+                    <div class="w-20 h-8 bg-slate-200 rounded-lg"></div>
+                    <div class="w-20 h-8 bg-slate-200 rounded-lg"></div>
+                    <div class="w-8 h-8 bg-slate-200 rounded-lg"></div>
+                </div>
             </div>
-            
-            <div class="flex items-center gap-6">
-                <!-- 셀방 예약 메뉴: 지정된 링크로 매핑 -->
-                <a href="http://gchurch.tiiny.site" target="_blank" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1.5">
-                    <i data-lucide="calendar-days" class="w-4 h-4"></i> 셀방 예약
-                </a>
-            </div>
-        </div>
-    </nav>
 
-    <main class="max-w-4xl mx-auto px-4 py-12">
-        <!-- 로딩 대기 -->
-        <div id="loading" class="flex flex-col items-center justify-center py-32">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <p id="loadingText" class="mt-4 text-slate-400 font-medium tracking-wide">사역 데이터를 동기화 중입니다...</p>
+            <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-xs animate-pulse">
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-amber-100"></div><div class="w-28 h-4 bg-slate-200 rounded"></div></div></div>
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-purple-100"></div><div class="w-36 h-4 bg-slate-200 rounded"></div></div></div>
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-blue-100"></div><div class="w-40 h-4 bg-slate-200 rounded"></div></div></div>
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-teal-100"></div><div class="w-32 h-4 bg-slate-200 rounded"></div></div></div>
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-indigo-100"></div><div class="w-32 h-4 bg-slate-200 rounded"></div></div></div>
+                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-slate-200"></div><div class="w-36 h-4 bg-slate-200 rounded"></div></div></div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 pt-3">
+                <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-indigo-600 border-t-transparent"></div>
+                <span id="loadingText" class="text-xs text-slate-400 font-medium">최신 모임 자료를 불러오고 있습니다...</span>
+            </div>
         </div>
 
         <div id="dashboard" class="hidden">
-            <!-- 페이지 헤더 -->
-            <header class="mb-12">
-                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
-                    <div>
-                        <span id="displayDate" class="text-indigo-600 font-bold text-xs tracking-[0.2em] uppercase mb-3 block font-medium">0000-00-00</span>
-                        <h2 id="displayTitle" class="text-3xl md:text-5xl font-black text-slate-800 leading-tight">이번 주 사역 가이드</h2>
+            <!-- 헤더 영역 -->
+            <header class="mb-3 pb-3 border-b border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm text-white shrink-0 cursor-pointer" onclick="refreshDataManually()" title="새로고침">
+                            <i data-lucide="church" class="w-5 h-5"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span id="displayTodayDate" class="text-[11px] font-semibold text-indigo-600 tracking-wider leading-none">2026-00-00</span>
+                                <span id="syncIndicator" class="hidden items-center gap-1 text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded leading-none">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> 동기화 중
+                                </span>
+                            </div>
+                            <h2 class="text-base sm:text-xl font-bold text-slate-800 tracking-tight leading-tight whitespace-nowrap">구리지구촌교회 목장</h2>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <select id="weekSelector" onchange="handleWeekChange(this.value)" class="bg-white border border-slate-200 text-slate-700 text-sm rounded-full px-6 py-2.5 shadow-sm outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20 appearance-none pr-10 relative">
-                            <option value="latest">최신 자료 보기</option>
+
+                    <!-- 우측 버튼군 -->
+                    <div class="flex items-center flex-wrap gap-2 pt-1 sm:pt-0">
+                        <button onclick="openCovenantModal()" class="text-xs font-semibold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/80 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-amber-200/80 shadow-xs">
+                            <i data-lucide="scroll" class="w-3.5 h-3.5 text-amber-600"></i> 서약 & 언약
+                        </button>
+
+                        <button onclick="openRoomReservationModal()" class="text-xs font-semibold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-indigo-200/70 shadow-xs">
+                            <i data-lucide="calendar-days" class="w-3.5 h-3.5 text-indigo-600"></i> 셀방 예약
+                        </button>
+
+                        <select id="weekSelector" onchange="handleWeekChange(this.value)" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg px-2.5 py-1.5 shadow-xs outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="latest">최신 모임 보기</option>
                         </select>
+
+                        <button id="viewToggleBtn" onclick="handleAdminToggleClick()" title="관리자 등록" class="w-8 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-indigo-600 flex items-center justify-center border border-slate-200 shadow-xs transition-colors">
+                            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <!-- 컨텐츠 영역 -->
-            <div class="space-y-6" id="mainContent">
+            <!-- 비전 배너 -->
+            <div class="mb-4 bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/90 rounded-xl p-3.5 shadow-xs">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                    <h3 class="text-xs font-bold text-indigo-950 uppercase tracking-wider">목장교회의 비전과 사명</h3>
+                </div>
+                <p class="text-[12px] sm:text-[13px] text-slate-600 leading-relaxed font-normal break-keep">
+                    복음 전도를 통해 구원받은 영혼에게 가족구조를 제공하고 그들의 교회정착과 영적성숙 및 공동체적 사역(선교와 구제)을 도우며, 더 나아가 목장교회의 재생산(배가)을 통한 하나님 나라 확장에 기여하고자 합니다.
+                </p>
+            </div>
+
+            <!-- 6대 섹션 -->
+            <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-200/80 overflow-hidden shadow-xs" id="stepsContainer">
                 
-                <!-- 1. 금주의 설교 영상 -->
-                <div id="videoAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-red-500">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-red-50/30" onclick="toggleAccordion('videoAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-red-100 rounded-2xl text-red-600">
-                                <i data-lucide="play-circle" class="w-6 h-6"></i>
-                            </div>
-                            <span class="font-extrabold text-slate-800 text-xl">금주의 설교 영상</span>
-                        </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
-                    </div>
-                    <div class="accordion-content px-4 md:px-8">
-                        <div class="p-2">
-                            <div id="videoPlaceholder" class="video-container shadow-2xl mb-6">
-                                <div id="youtubePlayerFrame"></div>
-                            </div>
-                            <a id="youtubeDirectLink" href="#" target="_blank" class="w-full flex items-center justify-center gap-2 py-4 bg-slate-50 hover:bg-red-50 hover:text-red-700 text-slate-500 rounded-[1.5rem] text-sm font-bold transition-all border border-transparent hover:border-red-100">
-                                <i data-lucide="youtube" class="w-5 h-5"></i> 유튜브 사이트에서 바로 보기
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. 설교 요약 -->
-                <div id="pdfAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-emerald-500">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-emerald-50/30" onclick="toggleAccordion('pdfAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-emerald-100 rounded-2xl text-emerald-600">
-                                <i data-lucide="file-text" class="w-6 h-6"></i>
-                            </div>
-                            <span class="font-extrabold text-slate-800 text-xl">설교 요약</span>
-                        </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
-                    </div>
-                    <div class="accordion-content px-10 md:px-12">
-                        <div id="pdfTextBody" class="content-body text-slate-700 text-base py-4"></div>
-                        <div class="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                            <a id="pdfLinkRaw" href="#" target="_blank" class="text-xs text-emerald-600 font-bold flex items-center gap-2 bg-emerald-50 px-6 py-3 rounded-full hover:bg-emerald-100 transition-colors">
-                                PDF 원본파일 다운로드 <i data-lucide="download" class="w-4 h-4"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. 나눔 질문 -->
-                <div id="pptAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-orange-500">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-orange-50/30" onclick="toggleAccordion('pptAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-orange-100 rounded-2xl text-orange-600">
-                                <i data-lucide="message-square" class="w-6 h-6"></i>
-                            </div>
-                            <span class="font-extrabold text-slate-800 text-xl">나눔 질문</span>
-                        </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
-                    </div>
-                    <div class="accordion-content px-10 md:px-12">
-                        <div id="pptTextBody" class="content-body text-slate-700 text-base py-4 font-medium leading-loose"></div>
-                    </div>
-                </div>
-
-                <!-- 4. 인포그래픽 -->
-                <div id="infoAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-teal-500">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-teal-50/30" onclick="toggleAccordion('infoAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-teal-100 rounded-2xl text-teal-600">
-                                <i data-lucide="image" class="w-6 h-6"></i>
-                            </div>
-                            <span class="font-extrabold text-slate-800 text-xl">인포그래픽</span>
-                        </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
-                    </div>
-                    <div class="accordion-content px-10 md:px-12">
-                        <div class="py-8 flex flex-col items-start">
-                            <div id="infoDateDisplay" class="text-xs font-bold text-teal-600 mb-8 bg-teal-50 px-4 py-1.5 rounded-full"></div>
-                            <div class="w-full bg-slate-50 rounded-[2rem] p-12 border border-slate-100 flex flex-col items-center justify-center text-center">
-                                <div class="bg-teal-100/50 p-6 rounded-full mb-6">
-                                    <i data-lucide="external-link" class="w-10 h-10 text-teal-600"></i>
+                <!-- [목] 환영 -->
+                <div id="sec1Accordion" class="step-card active">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec1Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-amber-500 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">목</div>
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center gap-2 leading-none mb-1">
+                                    <h3 class="font-bold text-slate-900 text-sm leading-none">목장원들을 환영</h3>
+                                    <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/50 leading-none">10분</span>
                                 </div>
-                                <h5 class="text-slate-800 font-bold text-lg mb-2">원본 파일 확인</h5>
-                                <p class="text-slate-500 text-sm mb-8">고해상도 인포그래픽 이미지를 새 창에서 확인하거나 다운로드할 수 있습니다.</p>
-                                <a id="infoDirectLink" href="#" target="_blank" class="flex items-center gap-3 px-10 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-full text-sm font-bold shadow-lg shadow-teal-100 transition-all">
-                                    인포그래픽 원본 보기 / 다운로드
+                                <p class="text-[11px] text-slate-400 leading-none">아이스브레이크 및 친교</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
+                    </div>
+                    <div class="accordion-content px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+                        <div id="welcomeBody" class="notion-rendered pt-2"></div>
+                    </div>
+                </div>
+
+                <!-- [장] 찬양과 경배 -->
+                <div id="sec2Accordion" class="step-card">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec2Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">장</div>
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center gap-2 leading-none mb-1">
+                                    <h3 class="font-bold text-slate-900 text-sm leading-none">장마비와 같은 찬양과 경배</h3>
+                                    <span class="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200/50 leading-none">15분</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-none">복음 성가 & 찬송가</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
+                    </div>
+                    <div class="accordion-content px-5 pb-4 pt-3 border-t border-slate-100 bg-slate-50/30">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div id="gospelWrapper" class="bg-white p-3 rounded-lg border border-slate-200/80 shadow-xs">
+                                <span class="text-[10px] font-bold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded inline-block mb-2">복음 성가</span>
+                                <div class="video-container mb-2" id="gospelVideo"></div>
+                                <a id="gospelLink" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-50 text-slate-600 rounded-md text-[11px] font-semibold hover:text-purple-600 transition-colors border border-slate-200">
+                                    <i data-lucide="external-link" class="w-3 h-3"></i> 크게 보기
+                                </a>
+                            </div>
+                            <div id="hymnWrapper" class="bg-white p-3 rounded-lg border border-slate-200/80 shadow-xs">
+                                <span class="text-[10px] font-bold text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded inline-block mb-2">찬송가</span>
+                                <div class="video-container mb-2" id="hymnVideo"></div>
+                                <a id="hymnLink" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-50 text-slate-600 rounded-md text-[11px] font-semibold hover:text-indigo-600 transition-colors border border-slate-200">
+                                    <i data-lucide="external-link" class="w-3 h-3"></i> 크게 보기
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 5. 목장 광고 -->
-                <div id="adAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-indigo-500">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-indigo-50/30" onclick="toggleAccordion('adAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-indigo-100 rounded-2xl text-indigo-600">
-                                <i data-lucide="megaphone" class="w-6 h-6"></i>
+                <!-- [교] 교제(말씀)을 통한 삶의 나눔 -->
+                <div id="sec3Accordion" class="step-card">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec3Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">교</div>
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center gap-2 leading-none mb-1">
+                                    <h3 class="font-bold text-slate-900 text-sm leading-none">교제(말씀)을 통한 삶의 나눔</h3>
+                                    <span class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/50 leading-none">40분</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-none">점검, 설교 영상, 말씀 요약 및 나눔</p>
                             </div>
-                            <span class="font-extrabold text-slate-800 text-xl">목장 광고</span>
                         </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
                     </div>
-                    <div class="accordion-content px-10 md:px-12">
-                        <div id="guideTextBody" class="content-body text-slate-600 text-sm py-4"></div>
+                    <div class="accordion-content px-5 pb-5 pt-3 border-t border-slate-100 space-y-3 bg-slate-50/30">
+                        <div id="reviewBox" class="p-3 rounded-lg bg-white border-l-4 border-l-blue-500 border border-slate-200/70 shadow-xs">
+                            <span class="text-xs font-bold text-blue-700 flex items-center gap-1.5 mb-1.5">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 지난 주 점검
+                            </span>
+                            <div id="reviewBody" class="notion-rendered"></div>
+                        </div>
+
+                        <div id="sermonVideoBox" class="space-y-2 bg-white p-3 rounded-lg border border-slate-200/70 shadow-xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span class="text-xs font-bold text-red-600 flex items-center gap-1">
+                                    <i data-lucide="play-circle" class="w-3.5 h-3.5"></i> 설교 영상
+                                </span>
+                                <h4 id="sermonTitleDisplay" class="text-xs font-semibold text-slate-800"></h4>
+                            </div>
+                            <div class="video-container shadow-xs">
+                                <div id="sermonPlayerFrame"></div>
+                            </div>
+                            <a id="sermonDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-50 hover:bg-red-50 text-slate-600 hover:text-red-700 rounded-lg text-xs font-semibold border border-slate-200 transition-colors">
+                                <i data-lucide="youtube" class="w-3.5 h-3.5"></i> 유튜브에서 시청하기
+                            </a>
+                        </div>
+
+                        <div id="summaryBox" class="p-3.5 rounded-lg bg-white border border-emerald-200/60 shadow-xs">
+                            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5 mb-1.5">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-600"></i> 설교 요약
+                            </span>
+                            <div id="summaryBody" class="notion-rendered"></div>
+                        </div>
+
+                        <div id="sharingBox" class="p-3.5 rounded-lg bg-white border border-amber-200/60 shadow-xs">
+                            <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-1.5">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-600"></i> 나눔 질문
+                            </span>
+                            <div id="sharingBody" class="notion-rendered"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 6. 금주의 목장 찬양 -->
-                <div id="praiseAccordion" class="accordion-item bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden border-l-8 border-l-indigo-700">
-                    <div class="accordion-header p-7 flex items-center justify-between hover:bg-indigo-50/30" onclick="toggleAccordion('praiseAccordion')">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-indigo-100 rounded-2xl text-indigo-700">
-                                <i data-lucide="music" class="w-6 h-6"></i>
+                <!-- [회] 기도와 돌봄 -->
+                <div id="sec4Accordion" class="step-card">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec4Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-teal-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">회</div>
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center gap-2 leading-none mb-1">
+                                    <h3 class="font-bold text-slate-900 text-sm leading-none">회원들을 기도와 돌봄으로 섬김</h3>
+                                    <span class="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/50 leading-none">15분</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-none">중보기도 제목 및 교우 돌봄</p>
                             </div>
-                            <span class="font-extrabold text-slate-800 text-xl">금주의 목장 찬양</span>
                         </div>
-                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-6 h-6"></i>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
                     </div>
-                    <div class="accordion-content px-6 md:px-10">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
-                            <div id="praise1Wrapper" class="hidden bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                                <div class="video-container mb-5" id="praise1Video"></div>
-                                <a id="praise1Link" href="#" target="_blank" class="flex items-center justify-center gap-2 py-3 bg-white text-slate-600 rounded-2xl text-xs font-bold shadow-sm hover:text-indigo-600 transition-colors">
-                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> 크게 보기
-                                </a>
-                            </div>
-                            <div id="praise2Wrapper" class="hidden bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                                <div class="video-container mb-5" id="praise2Video"></div>
-                                <a id="praise2Link" href="#" target="_blank" class="flex items-center justify-center gap-2 py-3 bg-white text-slate-600 rounded-2xl text-xs font-bold shadow-sm hover:text-indigo-600 transition-colors">
-                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> 크게 보기
-                                </a>
+                    <div class="accordion-content px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+                        <div id="prayerBody" class="notion-rendered pt-2"></div>
+                    </div>
+                </div>
+
+                <!-- [모] 사역에 참여 -->
+                <div id="sec5Accordion" class="step-card">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec5Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">모</div>
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center gap-2 leading-none mb-1">
+                                    <h3 class="font-bold text-slate-900 text-sm leading-none">모든 목장원이 사역에 참여</h3>
+                                    <span class="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/50 leading-none">10분</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-none">사역 분담 및 목장/교회 소식</p>
                             </div>
                         </div>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
+                    </div>
+                    <div class="accordion-content px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+                        <div id="ministryBody" class="notion-rendered pt-2"></div>
+                    </div>
+                </div>
+
+                <!-- [임] 마무리 -->
+                <div id="sec6Accordion" class="step-card">
+                    <div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/70" onclick="toggleAccordion('sec6Accordion')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-slate-900 to-indigo-700 text-white font-black text-xs flex items-center justify-center shadow-xs ring-1 ring-indigo-500/30 shrink-0">
+                                임
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <h3 class="font-bold text-slate-900 text-sm tracking-tight leading-none mb-1">
+                                    <span class="text-indigo-600 font-black">임</span>재하신 성령안에서 마무리
+                                </h3>
+                                <p class="text-[11px] text-slate-400 leading-none">마무리 기도, 주기도문, 축복</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-down" class="chevron-icon text-slate-400 w-4 h-4"></i>
+                    </div>
+                    <div class="accordion-content px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+                        <div id="closingBody" class="notion-rendered pt-2"></div>
                     </div>
                 </div>
 
@@ -260,135 +426,555 @@
         </div>
     </main>
 
-    <footer class="mt-20 border-t border-slate-100 py-16 text-center">
-        <p class="text-slate-300 text-[11px] tracking-[0.3em] font-bold uppercase mb-4">Ministry Resource Hub</p>
-        <p class="text-slate-400 text-[10px] font-medium uppercase">© 2026 FOR CELL LEADERS. ALL RIGHTS RESERVED.</p>
+    <!-- 2. 관리자 모달 및 셀방 모달 -->
+    <section id="adminView" class="hidden max-w-3xl mx-auto px-4 pt-5">
+        <div class="mb-4 flex items-center justify-between pb-3 border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">목장 모임 자료 입력</h2>
+                    <p class="text-xs text-slate-500">노션(Notion) 마크다운 서식을 그대로 붙여넣으시면 자동 반영됩니다.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="switchView('user')" class="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors">
+                    사용자 화면
+                </button>
+                <button onclick="lockAdminSession()" class="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-red-100">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> 잠금
+                </button>
+            </div>
+        </div>
+
+        <form id="resourceForm" onsubmit="handleAdminSubmit(event)" class="space-y-3">
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                <label class="block text-xs font-bold text-slate-700 mb-1">모임 일자 <span class="text-red-500">*</span></label>
+                <input type="date" id="inputDate" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-amber-500">
+                <label class="block text-xs font-bold text-slate-800 mb-1">[목] 목장원들을 환영 (아이스브레이크 : 10분)</label>
+                <textarea id="inputWelcome" rows="3" placeholder="노션에서 복사한 내용을 붙여넣으세요." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-purple-600 space-y-2">
+                <label class="block text-xs font-bold text-slate-800">[장] 장마비와 같은 찬양과 경배 (15분)</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <div>
+                        <span class="block text-[11px] text-slate-500 mb-1">복음 성가 유튜브 링크</span>
+                        <input type="url" id="inputGospel" placeholder="https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] text-slate-500 mb-1">찬송가 유튜브 링크</span>
+                        <input type="url" id="inputHymn" placeholder="https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-blue-600 space-y-2">
+                <label class="block text-xs font-bold text-slate-800">[교] 교제(말씀)을 통한 삶의 나눔 (40분)</label>
+                <div>
+                    <span class="block text-[11px] text-slate-500 mb-1">하위 1: 지난 주 점검</span>
+                    <textarea id="inputReview" rows="2" placeholder="노션 내용 붙여넣기" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <div>
+                        <span class="block text-[11px] text-slate-500 mb-1">하위 2: 설교 제목</span>
+                        <input type="text" id="inputSermonTitle" placeholder="설교 제목" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] text-slate-500 mb-1">하위 3: 설교 동영상 링크</span>
+                        <input type="url" id="inputSermonVideo" placeholder="https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                </div>
+                <div>
+                    <span class="block text-[11px] text-slate-500 mb-1">하위 4: 설교 요약 (노션 마크다운 지원)</span>
+                    <textarea id="inputSummary" rows="4" placeholder="노션 설교 요약문 붙여넣기" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                </div>
+                <div>
+                    <span class="block text-[11px] text-slate-500 mb-1">하위 5: 나눔 질문 (노션 마크다운 지원)</span>
+                    <textarea id="inputSharing" rows="4" placeholder="노션 나눔 질문 붙여넣기" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-teal-600">
+                <label class="block text-xs font-bold text-slate-800 mb-1">[회] 회원들을 기도와 돌봄으로 섬김 (15분)</label>
+                <textarea id="inputPrayer" rows="3" placeholder="중보기도 제목 붙여넣기" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-indigo-600">
+                <label class="block text-xs font-bold text-slate-800 mb-1">[모] 모든 목장원이 사역에 참여 (10분)</label>
+                <textarea id="inputMinistry" rows="3" placeholder="사역 분담 및 광고 사항 붙여넣기" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 border-l-4 border-l-slate-700">
+                <label class="block text-xs font-bold text-slate-800 mb-1">[임] 임재하신 성령안에서 마무리</label>
+                <textarea id="inputClosing" rows="2" placeholder="마무리 기도 및 축복 (비워둘 시 기본 기도문 표시)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="submitBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-sm">
+                    <i data-lucide="check" class="w-4 h-4"></i> 구글 시트에 즉시 등록하기
+                </button>
+            </div>
+
+            <div id="statusMessage" class="hidden p-3 rounded-lg text-center text-xs font-bold"></div>
+        </form>
+    </section>
+
+    <!-- 서약서 & 언약 모달 -->
+    <div id="covenantModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                        <i data-lucide="scroll" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">목장교회 언약 & 서약</h3>
+                </div>
+                <button onclick="closeCovenantModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="flex border-b border-slate-200 bg-slate-100/60 p-1.5 gap-1.5 shrink-0">
+                <button id="tabCovenantBtn" onclick="switchCovenantTab('covenant')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors bg-white text-indigo-700 shadow-xs">
+                    코이노니아 언약 (교독문)
+                </button>
+                <button id="tabPledgeBtn" onclick="switchCovenantTab('pledge')" class="flex-1 py-2 text-xs font-medium text-slate-600 rounded-lg hover:bg-white/60 transition-colors">
+                    목자 서약서
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 text-xs sm:text-[13px] leading-relaxed text-slate-700">
+                <!-- 코이노니아 언약 -->
+                <div id="tabContentCovenant" class="space-y-3">
+                    <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 text-center mb-3">
+                        <h4 class="font-bold text-indigo-950 text-sm">목장교회 코이노니아 언약</h4>
+                        <p class="text-[11px] text-indigo-700 mt-0.5 font-medium">(1년에 4회 이상 목장교회모임 시간에 교독한다)</p>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
+                            <span class="font-bold text-indigo-700 mr-1.5">[목자 1]</span> 우리는 우리의 목장교회를 통해 예수 그리스도를 주로 높이고 하나님께 영광을 돌리기 위하여 주께서 연결시켜 주신 신령한 영적 지체들임을 고백한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+                            <span class="font-bold text-slate-700 mr-1.5">[목장원 2]</span> 우리는 우리 목장교회에서 초대교회 공동체처럼 순수한 사랑과 겸허한 섬김의 교제가 이루어지도록 각자의 자리에서 최선의 노력을 다하고자 한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
+                            <span class="font-bold text-indigo-700 mr-1.5">[목자 3]</span> 우리는 우리 목장교회를 통해 말씀을 나눌 때, 한 사람이 겸손하게 자기의 깨달은 바를 말하되 한 사람이 대화 중 많은 시간을 독점하지 않고 모든 목장원이 함께 골고루 나누도록 격려한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+                            <span class="font-bold text-slate-700 mr-1.5">[목장원 4]</span> 무엇보다 우리는 예수 그리스도를 우리의 궁극적 지도자로 삼고 그의 권위 아래서 교제하되 또한 우리 목장교회의 목자를 주께서 세워주신 리더로 인정하며 그를 따르고 그를 위하여 기도할 것을 서약한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
+                            <span class="font-bold text-indigo-700 mr-1.5">[목자 5]</span> 우리는 목장교회를 통해 우리의 교제를 깨뜨릴 수 있는 교리, 이념, 정치성향 등과 같은 논쟁적 발언이나 특정한 대상에 대한 비판적 발언을 하지 않기로 서약한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+                            <span class="font-bold text-slate-700 mr-1.5">[목장원 6]</span> 무엇보다 목장교회원 상호간에 어려움을 극복할 수 있도록 기도의 짐을 지고 중보기도에 최선을 다하기로 약속한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
+                            <span class="font-bold text-indigo-700 mr-1.5">[목자 7]</span> 우리는 자기 자신의 삶의 어려움이나 문제가 있을 때는 할 수 있는 한 서로의 기도제목을 거리낌 없이 신속하게 목장교회에 알리고, 위하여 기도하기로 언약한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+                            <span class="font-bold text-slate-700 mr-1.5">[목장원 8]</span> 우리는 목장교회원 상호간에 어려움을 돕는 일에 최선을 다하되, 그로 말미암은 불필요한 오해나 교제의 부담이 없도록 하기 위하여 꾸거나, 꾸어 주는 일들의 돈거래 그리고 계모임 등은 일체 하지 않기로 언약한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
+                            <span class="font-bold text-indigo-700 mr-1.5">[목자 9]</span> 우리들의 목장교회를 통하여 주님을 닮아가며 주 뜻대로 살아가고자 주께서 명하신 성령충만을 이루기 위하여 성령충만을 방해하는 주류사용(술 취함), 불건전한 오락(도박), 그리고 교회나 개인에 대한 비방을 일체 금하기로 한다.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+                            <span class="font-bold text-slate-700 mr-1.5">[목장원 10]</span> 말씀과 기도는 우리들의 교제의 수단이며, 거룩함은 우리들의 교제의 태도이며, 세계선교와 이웃사랑은 우리들의 교제의 궁극적인 목표임을 우리는 명심할 것이다.
+                        </div>
+                    </div>
+
+                    <div class="pt-3 text-center font-bold text-slate-800 border-t border-slate-100 text-xs sm:text-sm">
+                        20   년  월   일 목장교회원 일동이 주께 언약하나이다.
+                    </div>
+                </div>
+
+                <!-- 목자 서약서 -->
+                <div id="tabContentPledge" class="hidden space-y-3">
+                    <div class="bg-amber-50/80 border border-amber-200/70 rounded-xl p-3 text-center mb-3">
+                        <h4 class="font-bold text-amber-950 text-sm sm:text-base">목장교회 목자 서약서</h4>[cite: 3]
+                    </div>
+
+                    <p class="font-semibold text-slate-800 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 text-xs sm:text-[13px] leading-relaxed">
+                        나는 구리지구촌교회 목자로서 다음 사항을 충분히 이해하고, 목장교회 사역에 적극적으로 동참 할 것을 하나님과 교회 앞에 엄숙히 약속합니다.
+                    </p>
+
+                    <ol class="space-y-2 list-decimal list-inside text-slate-700">
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목자가 종으로 섬기는 '직책' 임을 이해하고 맡겨진 양떼의 성숙을 위해 나의 삶을 헌신하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목장교회가 작은 교회로 잘 세워지도록 책임을 다하며, 목장교회 현장의 최종 사역자로서 최선을 다하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 사역에 필요한 지속적인 성장과 비전공유를 위하여, 목자 모임에 성실하게 참여하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 날마다 말씀과 기도의 삶을 부지런히 훈련하여, 영적 성숙을 위해 최선을 다하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 새가족 심방시 반드시 교역자와 동행하고, 새가족이 목장교회와 교회에 잘 정착하도록 최선을 다해 돕겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목장원들이 교회 밖의 성경공부와 성령집회에 참석할 경우 담당 교역자와 먼저 상담하여 목장원들을 바른 믿음의 길로 인도하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목장원들이 성경적 은사에 맞게 사역하도록 도울 것이며, 방언을 과도하게 강조하여 목장원들의 믿음이 상처받지 않도록 지혜롭게 섬기겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목장원들을 위해 한 주에 두 번 이상 기도하고, 교회의 훈련과정에 참여할 수 있도록 돌보겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 목장원들이 한 영혼에 대한 사랑과 배가의 비전을 품고 전도의 삶을 살도록 도우며 새로운 목자를 세워 목장교회를 배가하도록 최선의 노력을 다하겠습니다.</li>
+                        <li class="p-2 rounded-lg hover:bg-slate-50 transition-colors">나는 주일예배와 수요예배 및 각종 훈련과정에 성실하게 참여함으로 목자로서 모범을 보이도록 노력하겠습니다.</li>
+                    </ol>
+
+                    <div class="p-3 bg-amber-50/70 rounded-lg border border-amber-200/60 text-center font-semibold text-amber-950 text-xs sm:text-[13px] leading-relaxed">
+                        나는 위의 사항을 충분히 이해하고 전적으로 동의할 뿐 아니라 최선을 다해 준수할 것을 하나님과 교회 앞에 다짐합니다. 2026년   월    일  목자  ______________
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 셀방 예약 모달 -->
+    <div id="roomModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                        <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base">구리지구촌교회 셀방 예약</h3>
+                        <span id="roomSyncStatus" class="text-[10px] text-slate-400">데이터 동기화 완료</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleInquiry()" class="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1">
+                        <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-indigo-600"></i> 예약 조회
+                    </button>
+                    <button onclick="closeRoomReservationModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+                <div id="inquiry-section" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i data-lucide="list-filter" class="w-3.5 h-3.5 text-indigo-600"></i> 진행 예정 예약 목록
+                        </span>
+                        <button onclick="toggleInquiry()" class="text-[11px] text-slate-400 hover:text-slate-600">닫기</button>
+                    </div>
+                    <div id="inquiry-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/40 p-3.5 rounded-xl border border-indigo-100">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">날짜 선택</label>
+                        <input type="date" id="reservation-date" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">예약자 성함</label>
+                        <input type="text" id="reserver-name" placeholder="예약자 성함" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">목장명</label>
+                        <input type="text" id="reserver-group" placeholder="목장명 (예: 믿음목장)" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                    <table class="w-full border-collapse min-w-[720px]">
+                        <thead>
+                            <tr id="grid-header" class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold">
+                                <th class="p-2 w-16 text-center border-r border-slate-200 sticky left-0 bg-slate-50 z-20">호실</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grid-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리자 인증 모달 -->
+    <div id="passwordModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-xl p-5 w-full max-w-sm shadow-xl border border-slate-100">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-7 h-7 rounded-md bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm">관리자 인증</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">자료 등록을 위해 관리자 비밀번호를 입력해주세요.</p>
+            
+            <form onsubmit="verifyAdminPassword(event)">
+                <input type="password" id="adminPasswordInput" placeholder="비밀번호 입력" autofocus class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm mb-2">
+                <p id="passwordError" class="text-xs text-red-500 hidden mb-2.5 font-semibold">비밀번호가 일치하지 않습니다.</p>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closePasswordModal()" class="flex-1 py-2 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">취소</button>
+                    <button type="submit" class="flex-1 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg">확인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="mt-14 py-6 text-center border-t border-slate-200/80">
+        <p class="text-slate-400 text-xs font-medium">© 2026 FOR CELL LEADERS. ALL RIGHTS RESERVED.</p>
     </footer>
 
+    <!-- YouTube Iframe API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwwizT5vwToaWgGA7cOfeRVhzI-4nZM4MmWt6czQXS4PzmvfDhC4KMr422ITVapf7OE/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxoB5pdQ5oWUWMFCE1O7RVQHB_NyuvzeeePbbJ7qvOOvv0P4YfC8P5I3AzacKysw1ytng/exec";
+        const CACHE_KEY = "gchurch_cell_data_cache";
+
+        const ROOM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfr17L6x5hPItZ1V5W6XlH2wKWipUJwDhECjVImKw3D0_o9WS4rvaxDQBjG0sZwrSByA/exec';
+        const ROOM_CACHE_KEY = "gchurch_room_reservation_cache";
+
+        const times = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+        const rooms = ['601','602','603','604','605','606','607','611','612','613'];
+        let currentRoomDate = null, serverRoomDataCache = {};
+
+        const ADMIN_PASSWORD = "1234";
+        let isAdminAuthenticated = false;
+
         let allData = [];
-        let player;
+        let sermonPlayer;
         let isApiReady = false;
+        let currentView = 'user';
 
-        function onYouTubeIframeAPIReady() {
-            isApiReady = true;
-            initApp();
+        if (window.marked) {
+            marked.setOptions({ breaks: true, gfm: true });
         }
 
-        async function initApp() {
-            try {
-                const response = await fetch(API_URL);
-                const responseData = await response.json();
-                allData = responseData.sort((a, b) => new Date(b.date) - new Date(a.date));
-                populateWeekSelector();
-                if (allData.length > 0) renderContent(allData[0]);
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-            } catch (error) {
-                console.error("Data Load Error:", error);
-                document.getElementById('loadingText').innerText = "데이터 연결 실패. 서버 확인이 필요합니다.";
+        function getTodayFormatted() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            return `${year}-${month}-${date} (${dayNames[now.getDay()]})`;
+        }
+
+        const getTodayString = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+        function renderNotionMarkdown(text) {
+            if (!text || !text.trim()) return "";
+            if (window.marked) return marked.parse(text);
+            return text.replace(/\n/g, '<br>');
+        }
+
+        // 강제 로딩 해제 (화면 멈춤 완전 차단)
+        function forceHideLoading() {
+            const loading = document.getElementById('loading');
+            const dashboard = document.getElementById('dashboard');
+            if (loading) loading.style.display = 'none';
+            if (dashboard) dashboard.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const displayDateEl = document.getElementById('displayTodayDate');
+            if (displayDateEl) displayDateEl.textContent = getTodayFormatted();
+
+            // 1. 캐시가 있으면 즉시 렌더링
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        allData = parsed;
+                        populateWeekSelector();
+                        renderContent(allData[0]);
+                    }
+                } catch(e) {}
             }
-            lucide.createIcons();
+
+            // 2. 화면 스켈레톤은 0.8초 후 무조건 강제 종료
+            setTimeout(forceHideLoading, 800);
+
+            // 3. 백그라운드에서 최신 데이터 수신 (CORS 완벽 우회 JSONP)
+            fetchLatestDataJSONP();
+            try { initRoomReservationData(); } catch(e){}
+        });
+
+        function sortAndSanitizeData(rawData) {
+            if (!Array.isArray(rawData)) return [];
+            return rawData
+                .filter(item => item && item.date && String(item.date).trim() !== "")
+                .sort((a, b) => {
+                    const dateStrA = String(a.date).substring(0, 10);
+                    const dateStrB = String(b.date).substring(0, 10);
+                    return dateStrB.localeCompare(dateStrA);
+                });
         }
 
-        function toggleAccordion(id) {
-            const item = document.getElementById(id);
-            item.classList.toggle('active');
+        // 전역 콜백 함수 (JSONP 수신부)
+        window.onCellDataReceived = function(data) {
+            const syncIndicator = document.getElementById('syncIndicator');
+            if (syncIndicator) {
+                syncIndicator.classList.add('hidden');
+                syncIndicator.classList.remove('inline-flex');
+            }
+
+            const sorted = sortAndSanitizeData(data);
+            if (sorted.length > 0) {
+                allData = sorted;
+                localStorage.setItem(CACHE_KEY, JSON.stringify(allData));
+                populateWeekSelector();
+                renderContent(allData[0]);
+            } else if (allData.length === 0) {
+                const welcome = document.getElementById('welcomeBody');
+                if (welcome) {
+                    welcome.innerHTML = "<p class='text-slate-500 py-2'>구글 시트에 등록된 목장 모임 자료가 없습니다.<br>우측 상단의 열쇠(관리자) 아이콘을 눌러 자료를 등록해 주세요.</p>";
+                }
+            }
+            forceHideLoading();
+        };
+
+        function fetchLatestDataJSONP() {
+            const syncIndicator = document.getElementById('syncIndicator');
+            if (syncIndicator) {
+                syncIndicator.classList.remove('hidden');
+                syncIndicator.classList.add('inline-flex');
+            }
+
+            // 기존 스크립트 태그 제거
+            const existingScript = document.getElementById('gas-jsonp-script');
+            if (existingScript) existingScript.remove();
+
+            // JSONP 스크립트 동적 주입 (CORS 302 리디렉션 에러 완벽 해결)
+            const script = document.createElement('script');
+            script.id = 'gas-jsonp-script';
+            script.src = `${API_URL}?callback=onCellDataReceived&t=${new Date().getTime()}`;
+            script.onerror = function() {
+                console.warn("JSONP 호출 지연 -> 표준 Fetch로 백업 시도");
+                fetchLatestDataFallback();
+            };
+            document.body.appendChild(script);
+        }
+
+        // 백업용 표준 Fetch
+        async function fetchLatestDataFallback() {
+            try {
+                const res = await fetch(`${API_URL}?t=${new Date().getTime()}`);
+                const data = await res.json();
+                window.onCellDataReceived(data);
+            } catch(e) {
+                console.error("Fetch도 실패:", e);
+                forceHideLoading();
+            }
+        }
+
+        function refreshDataManually() {
+            fetchLatestDataJSONP();
+            fetchRoomDataFromServer(true);
         }
 
         function populateWeekSelector() {
             const selector = document.getElementById('weekSelector');
-            selector.innerHTML = '<option value="latest">최신 자료 보기</option>';
+            if (!selector) return;
+
+            selector.innerHTML = '<option value="latest">최신 모임 보기</option>';
             allData.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.date;
-                const dateStr = item.date ? item.date.substring(0, 10) : "Unknown";
-                option.textContent = `${dateStr} (${(item.title || "").substring(0, 12)}...)`;
-                selector.appendChild(option);
+                const opt = document.createElement('option');
+                opt.value = item.date;
+                const dateStr = item.date ? String(item.date).substring(0, 10) : "날짜미상";
+                const titleStr = item.sermon_title || item.title || "목장 모임";
+                opt.textContent = `${dateStr} (${titleStr.substring(0, 12)}...)`;
+                selector.appendChild(opt);
             });
         }
 
-        function handleWeekChange(date) {
-            const selected = date === 'latest' ? allData[0] : allData.find(item => item.date === date);
-            if (selected) renderContent(selected);
+        function handleWeekChange(val) {
+            if (val === 'latest') {
+                renderContent(allData[0]);
+            } else {
+                const found = allData.find(d => String(d.date).substring(0, 10) === String(val).substring(0, 10));
+                if (found) renderContent(found);
+            }
         }
 
         function renderContent(item) {
-            const cleanDate = item.date ? item.date.substring(0, 10) : "0000-00-00";
-            document.getElementById('displayDate').textContent = cleanDate;
-            document.getElementById('displayTitle').textContent = item.title;
+            if (!item) return;
 
-            const videoId = extractYoutubeId(item.youtube);
-            const videoAccordion = document.getElementById('videoAccordion');
-            if (videoId && isApiReady) {
-                if (!player) {
-                    player = new YT.Player('youtubePlayerFrame', {
-                        videoId: videoId,
-                        playerVars: { 'rel': 0, 'enablejsapi': 1, 'origin': location.origin }
-                    });
+            updateMarkdownSection('sec1Accordion', 'welcomeBody', item.welcome);
+            
+            renderVideoCard(item.praise_gospel || item.praise1, 'gospelWrapper', 'gospelVideo', 'gospelLink');
+            renderVideoCard(item.praise_hymn || item.praise2, 'hymnWrapper', 'hymnVideo', 'hymnLink');
+            const hasPraise = Boolean(item.praise_gospel || item.praise_hymn || item.praise1);
+            const sec2 = document.getElementById('sec2Accordion');
+            if (sec2) sec2.style.display = hasPraise ? 'block' : 'none';
+
+            updateMarkdownSubItem('reviewBox', 'reviewBody', item.sermon_review);
+            const titleEl = document.getElementById('sermonTitleDisplay');
+            if (titleEl) titleEl.textContent = item.sermon_title || item.title || "";
+
+            const sermonVid = extractYoutubeId(item.sermon_video || item.youtube);
+            const videoBox = document.getElementById('sermonVideoBox');
+            if (videoBox) {
+                if (sermonVid) {
+                    videoBox.style.display = "block";
+                    if (isApiReady && document.getElementById('sermonPlayerFrame')) {
+                        if (!sermonPlayer) {
+                            sermonPlayer = new YT.Player('sermonPlayerFrame', {
+                                videoId: sermonVid,
+                                playerVars: { 'rel': 0, 'enablejsapi': 1, 'origin': location.origin }
+                            });
+                        } else {
+                            sermonPlayer.loadVideoById(sermonVid);
+                        }
+                    }
+                    const directLink = document.getElementById('sermonDirectLink');
+                    if (directLink) directLink.href = `https://www.youtube.com/watch?v=${sermonVid}`;
                 } else {
-                    player.loadVideoById(videoId);
+                    videoBox.style.display = "none";
                 }
-                document.getElementById('youtubeDirectLink').href = `https://www.youtube.com/watch?v=${videoId}`;
-                videoAccordion.style.display = "block";
-            } else {
-                videoAccordion.style.display = "none";
             }
 
-            // 모든 아코디언 초기 닫기
-            document.querySelectorAll('.accordion-item').forEach(el => el.classList.remove('active'));
+            updateMarkdownSubItem('summaryBox', 'summaryBody', item.sermon_summary || item.pdf_text);
+            updateMarkdownSubItem('sharingBox', 'sharingBody', item.sermon_sharing || item.questions || item.ppt_text);
 
-            updateAccordion('pdfAccordion', 'pdfTextBody', item.pdf_text, false);
-            document.getElementById('pdfLinkRaw').href = item.pdf || "#";
+            updateMarkdownSection('sec4Accordion', 'prayerBody', item.prayer_care);
+            updateMarkdownSection('sec5Accordion', 'ministryBody', item.ministry || item.announcements || item.content);
 
-            updateAccordion('pptAccordion', 'pptTextBody', item.ppt_text, false);
+            const defaultClosing = "> **마무리 기도 및 주기도문**\n\n모든 나눔을 마친 후 인도자의 마침 기도 또는 주기도문으로 모임을 마무리합니다.\n서로를 축복하며 평안의 인사를 나눕니다.";
+            const closingText = (item.closing && item.closing.trim() !== "") ? item.closing : defaultClosing;
+            const sec6 = document.getElementById('sec6Accordion');
+            if (sec6) sec6.style.display = "block";
+            const closingBody = document.getElementById('closingBody');
+            if (closingBody) closingBody.innerHTML = renderNotionMarkdown(closingText);
 
-            const infoAccordion = document.getElementById('infoAccordion');
-            const infoDate = document.getElementById('infoDateDisplay');
-            const infoLink = document.getElementById('infoDirectLink');
-            
-            if (item.image && item.image !== "#" && item.image.trim() !== "") {
-                infoAccordion.style.display = "block";
-                infoDate.textContent = "등록 날짜: " + cleanDate;
-                infoLink.href = item.image; 
-            } else {
-                infoAccordion.style.display = "none";
-            }
-
-            updateAccordion('adAccordion', 'guideTextBody', item.content, false);
-
-            renderPraise(item.praise1, 'praise1Wrapper', 'praise1Video', 'praise1Link');
-            renderPraise(item.praise2, 'praise2Wrapper', 'praise2Video', 'praise2Link');
-            const hasPraise = (item.praise1 && item.praise1 !== "#") || (item.praise2 && item.praise2 !== "#");
-            document.getElementById('praiseAccordion').style.display = hasPraise ? "block" : "none";
-            
-            lucide.createIcons();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.lucide) lucide.createIcons();
         }
 
-        function updateAccordion(accordionId, bodyId, text, shouldBeActive) {
-            const accordion = document.getElementById(accordionId);
+        function updateMarkdownSection(accordionId, bodyId, text) {
+            const acc = document.getElementById(accordionId);
             const body = document.getElementById(bodyId);
+            if (!acc || !body) return;
             if (text && text.trim() !== "") {
-                accordion.style.display = "block";
-                body.textContent = text;
-                if (shouldBeActive) accordion.classList.add('active');
-                else accordion.classList.remove('active');
+                acc.style.display = "block";
+                body.innerHTML = renderNotionMarkdown(text);
             } else {
-                accordion.style.display = "none";
-                accordion.classList.remove('active');
+                acc.style.display = "none";
             }
         }
 
-        function renderPraise(url, wrapperId, videoId, linkId) {
+        function updateMarkdownSubItem(boxId, bodyId, text) {
+            const box = document.getElementById(boxId);
+            const body = document.getElementById(bodyId);
+            if (!box || !body) return;
+            if (text && text.trim() !== "") {
+                box.classList.remove('hidden');
+                body.innerHTML = renderNotionMarkdown(text);
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function renderVideoCard(url, wrapperId, videoId, linkId) {
             const id = extractYoutubeId(url);
             const wrapper = document.getElementById(wrapperId);
+            const videoEl = document.getElementById(videoId);
+            const linkEl = document.getElementById(linkId);
+            if (!wrapper) return;
+
             if (id) {
                 wrapper.classList.remove('hidden');
-                document.getElementById(videoId).innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?rel=0" frameborder="0" allowfullscreen></iframe>`;
-                document.getElementById(linkId).href = `https://www.youtube.com/watch?v=${id}`;
+                if (videoEl) videoEl.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?rel=0" frameborder="0" allowfullscreen></iframe>`;
+                if (linkEl) linkEl.href = `https://www.youtube.com/watch?v=${id}`;
             } else {
                 wrapper.classList.add('hidden');
             }
@@ -396,9 +982,328 @@
 
         function extractYoutubeId(url) {
             if (!url || url === "#") return null;
-            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[7].length == 11) ? match[7] : null;
+            const match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+            return (match && match[7].length === 11) ? match[7] : null;
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('active');
+        }
+
+        function onYouTubeIframeAPIReady() {
+            isApiReady = true;
+            if (allData.length > 0) {
+                const item = allData[0];
+                const vid = extractYoutubeId(item.sermon_video || item.youtube);
+                if (vid && !sermonPlayer && document.getElementById('sermonPlayerFrame')) {
+                    sermonPlayer = new YT.Player('sermonPlayerFrame', {
+                        videoId: vid,
+                        playerVars: { 'rel': 0, 'enablejsapi': 1, 'origin': location.origin }
+                    });
+                }
+            }
+        }
+
+        function openCovenantModal() {
+            const m = document.getElementById('covenantModal');
+            if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; if (window.lucide) lucide.createIcons(); }
+        }
+        function closeCovenantModal() {
+            const m = document.getElementById('covenantModal');
+            if (m) { m.classList.add('hidden'); m.style.display = 'none'; }
+        }
+        function switchCovenantTab(tab) {
+            const cBtn = document.getElementById('tabCovenantBtn');
+            const pBtn = document.getElementById('tabPledgeBtn');
+            const cBox = document.getElementById('tabContentCovenant');
+            const pBox = document.getElementById('tabContentPledge');
+            if (tab === 'covenant') {
+                cBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-xs";
+                pBtn.className = "flex-1 py-2 text-xs font-medium text-slate-600 rounded-lg hover:bg-white/60";
+                cBox.classList.remove('hidden'); pBox.classList.add('hidden');
+            } else {
+                pBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-amber-800 shadow-xs";
+                cBtn.className = "flex-1 py-2 text-xs font-medium text-slate-600 rounded-lg hover:bg-white/60";
+                pBox.classList.remove('hidden'); cBox.classList.add('hidden');
+            }
+        }
+
+        function handleAdminToggleClick() {
+            if (currentView === 'admin') switchView('user');
+            else {
+                if (isAdminAuthenticated) switchView('admin');
+                else openPasswordModal();
+            }
+        }
+        function openPasswordModal() {
+            const m = document.getElementById('passwordModal');
+            if (m) {
+                m.classList.remove('hidden'); m.style.display = 'flex';
+                document.getElementById('passwordError').classList.add('hidden');
+                document.getElementById('adminPasswordInput').value = "";
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+        function closePasswordModal() {
+            const m = document.getElementById('passwordModal');
+            if (m) { m.classList.add('hidden'); m.style.display = 'none'; }
+        }
+        function verifyAdminPassword(e) {
+            e.preventDefault();
+            if (document.getElementById('adminPasswordInput').value === ADMIN_PASSWORD) {
+                isAdminAuthenticated = true;
+                closePasswordModal();
+                switchView('admin');
+            } else {
+                document.getElementById('passwordError').classList.remove('hidden');
+                document.getElementById('adminPasswordInput').value = "";
+            }
+        }
+        function lockAdminSession() {
+            isAdminAuthenticated = false;
+            switchView('user');
+        }
+        function switchView(target) {
+            currentView = target;
+            const uv = document.getElementById('userView');
+            const av = document.getElementById('adminView');
+            if (target === 'admin') {
+                uv.classList.add('hidden'); av.classList.remove('hidden');
+                if (!document.getElementById('inputDate').value) {
+                    document.getElementById('inputDate').value = new Date().toISOString().substring(0, 10);
+                }
+            } else {
+                av.classList.add('hidden'); uv.classList.remove('hidden');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function handleAdminSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('statusMessage');
+            btn.disabled = true;
+            btn.innerText = "등록 중...";
+            msg.classList.add('hidden');
+
+            const payload = {
+                date: document.getElementById('inputDate').value,
+                welcome: document.getElementById('inputWelcome').value,
+                praise_gospel: document.getElementById('inputGospel').value,
+                praise_hymn: document.getElementById('inputHymn').value,
+                sermon_review: document.getElementById('inputReview').value,
+                sermon_title: document.getElementById('inputSermonTitle').value,
+                sermon_video: document.getElementById('inputSermonVideo').value,
+                sermon_summary: document.getElementById('inputSummary').value,
+                sermon_sharing: document.getElementById('inputSharing').value,
+                prayer_care: document.getElementById('inputPrayer').value,
+                ministry: document.getElementById('inputMinistry').value,
+                closing: document.getElementById('inputClosing').value
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                msg.className = "p-3 rounded-lg text-center text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+                msg.innerText = "목장 모임 자료가 성공적으로 등록되었습니다!";
+
+                setTimeout(() => {
+                    switchView('user');
+                    fetchLatestDataJSONP();
+                }, 1200);
+            } catch(err) {
+                msg.className = "p-3 rounded-lg text-center text-xs font-bold bg-red-50 text-red-700 border border-red-200 block";
+                msg.innerText = "전송 중 오류가 발생했습니다.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> 구글 시트에 즉시 등록하기`;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function initRoomReservationData() {
+            const d = document.getElementById('reservation-date');
+            if (!d) return;
+            d.min = getTodayString();
+            if (!currentRoomDate) currentRoomDate = getTodayString();
+            d.value = currentRoomDate;
+
+            const c = localStorage.getItem(ROOM_CACHE_KEY);
+            if (c) { try { serverRoomDataCache = JSON.parse(c); } catch(e){} }
+            fetchRoomDataFromServer(false);
+            d.onchange = (e) => { currentRoomDate = e.target.value; renderIntegratedGrid(); };
+        }
+
+        async function fetchRoomDataFromServer() {
+            try {
+                const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
+                const data = await res.json();
+                const newCache = {};
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        const d = item.date;
+                        if (!newCache[d]) newCache[d] = {};
+                        if (!newCache[d][item.room]) newCache[d][item.room] = [];
+                        newCache[d][item.room].push(item);
+                    });
+                }
+                serverRoomDataCache = newCache;
+                localStorage.setItem(ROOM_CACHE_KEY, JSON.stringify(serverRoomDataCache));
+                const roomModal = document.getElementById('roomModal');
+                if (roomModal && !roomModal.classList.contains('hidden')) renderIntegratedGrid();
+            } catch(e){}
+        }
+
+        function openRoomReservationModal() {
+            const m = document.getElementById('roomModal');
+            if (m) {
+                m.classList.remove('hidden'); m.style.display = 'flex';
+                if (!currentRoomDate) currentRoomDate = getTodayString();
+                document.getElementById('reservation-date').value = currentRoomDate;
+                renderIntegratedGrid();
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+        function closeRoomReservationModal() {
+            const m = document.getElementById('roomModal');
+            if (m) { m.classList.add('hidden'); m.style.display = 'none'; }
+        }
+
+        function renderIntegratedGrid() {
+            const body = document.getElementById('grid-body');
+            const header = document.getElementById('grid-header');
+            if (!body || !header) return;
+
+            const isToday = (currentRoomDate === getTodayString());
+            const nowH = new Date().getHours();
+            const selDate = new Date(currentRoomDate);
+            const isSunday = selDate.getDay() === 0;
+            const isMarch = selDate.getMonth() === 2;
+
+            header.innerHTML = '<th class="p-2 w-16 text-center border-r border-slate-200 sticky left-0 bg-slate-50 z-20">호실</th>';
+            times.forEach(t => {
+                const th = document.createElement('th');
+                th.className = "p-2 border-r border-slate-200 text-center font-semibold text-slate-600";
+                th.innerText = t;
+                header.appendChild(th);
+            });
+            body.innerHTML = "";
+
+            rooms.forEach(room => {
+                const tr = document.createElement('tr');
+                const tdLabel = document.createElement('td');
+                tdLabel.className = "room-label p-2 text-center font-bold text-slate-800 border-r border-slate-200";
+                tdLabel.innerText = room + "호";
+                tr.appendChild(tdLabel);
+
+                const reservedList = (serverRoomDataCache[currentRoomDate] || {})[room] || [];
+                times.forEach(t => {
+                    const td = document.createElement('td');
+                    td.className = "p-1.5 border-r border-slate-100 text-center";
+                    const btn = document.createElement('button');
+                    btn.className = "cell-btn";
+                    const h = parseInt(t.split(":")[0], 10);
+                    const res = reservedList.find(s => {
+                        const m = String(s.time).match(/\d+/);
+                        return m ? parseInt(m[0], 10) === h : false;
+                    });
+
+                    if (isMarch && isSunday) {
+                        if (room === '603' && h === 11) { btn.className += " fixed"; btn.innerText = "어린이부"; btn.disabled = true; }
+                        else if (room === '603' && h === 13) { btn.className += " fixed"; btn.innerText = "시니어부"; btn.disabled = true; }
+                        else if (room === '613' && h === 11) { btn.className += " fixed"; btn.innerText = "정병단"; btn.disabled = true; }
+                    }
+
+                    if (!btn.disabled) {
+                        if (isToday && h <= nowH) {
+                            btn.className += " expired"; btn.innerText = "종료"; btn.disabled = true;
+                        } else if (res) {
+                            btn.className += " reserved"; btn.innerText = res.group; btn.disabled = true;
+                        } else {
+                            btn.innerText = "예약가능";
+                            btn.onclick = () => requestReservation(room, t);
+                        }
+                    }
+                    td.appendChild(btn);
+                    tr.appendChild(td);
+                });
+                body.appendChild(tr);
+            });
+        }
+
+        async function requestReservation(room, time) {
+            const name = document.getElementById('reserver-name').value.trim();
+            const group = document.getElementById('reserver-group').value.trim();
+            if (!name || !group) {
+                alert("예약자 성함과 목장명을 상단에 먼저 입력해주세요.");
+                document.getElementById('reserver-name').focus();
+                return;
+            }
+
+            if (confirm(`${currentRoomDate}\n${room}호 ${time}에 예약하시겠습니까?\n예약자: ${name} (${group})`)) {
+                const p = new URLSearchParams({ action: 'reserve', date: currentRoomDate, room, time, name, group });
+                try {
+                    const res = await fetch(`${ROOM_SCRIPT_URL}?${p.toString()}`);
+                    const result = await res.json();
+                    if (result.success) {
+                        alert("예약이 완료되었습니다!");
+                        if (!serverRoomDataCache[currentRoomDate]) serverRoomDataCache[currentRoomDate] = {};
+                        if (!serverRoomDataCache[currentRoomDate][room]) serverRoomDataCache[currentRoomDate][room] = [];
+                        serverRoomDataCache[currentRoomDate][room].push({ time, name, group });
+                        localStorage.setItem(ROOM_CACHE_KEY, JSON.stringify(serverRoomDataCache));
+                        renderIntegratedGrid();
+                    } else {
+                        alert("예약 실패: " + (result.message || "이미 예약된 시간입니다."));
+                    }
+                } catch(err) {
+                    alert("예약 전송 중 오류가 발생했습니다.");
+                }
+            }
+        }
+
+        function toggleInquiry() {
+            const s = document.getElementById('inquiry-section');
+            if (!s) return;
+            if (s.classList.contains('hidden')) { renderInquiry(); s.classList.remove('hidden'); }
+            else { s.classList.add('hidden'); }
+        }
+
+        function renderInquiry() {
+            const c = document.getElementById('inquiry-container');
+            if (!c) return;
+            c.innerHTML = "";
+            const today = getTodayString();
+            let list = [];
+            for (let d in serverRoomDataCache) {
+                for (let r in serverRoomDataCache[d]) {
+                    serverRoomDataCache[d][r].forEach(x => {
+                        if (d >= today) list.push({d, r, ...x});
+                    });
+                }
+            }
+            list.sort((a,b) => a.d.localeCompare(b.d));
+            if (list.length === 0) {
+                c.innerHTML = "<p class='col-span-2 text-slate-400 py-3 text-center'>진행 예정인 예약이 없습니다.</p>";
+                return;
+            }
+            list.forEach(i => {
+                const div = document.createElement('div');
+                div.className = "p-2.5 bg-white rounded-lg border border-slate-200 shadow-xs";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between text-indigo-600 font-bold mb-1">
+                        <span>📅 ${i.d}</span><span>⏰ ${i.time}</span>
+                    </div>
+                    <div class="text-slate-800">🚪 <b>${i.r}호</b> | 👤 <b>${i.name}</b> (${i.group})</div>
+                `;
+                c.appendChild(div);
+            });
         }
     </script>
 </body>
