@@ -39,7 +39,7 @@
             overflow: hidden;
         }
 
-        #sermonPlayerFrame {
+        .video-container iframe {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
         }
@@ -714,8 +714,6 @@
         <p class="text-slate-400 text-xs font-medium">© 2026 FOR CELL LEADERS. ALL RIGHTS RESERVED.</p>
     </footer>
 
-    <!-- YouTube Iframe API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxoB5pdQ5oWUWMFCE1O7RVQHB_NyuvzeeePbbJ7qvOOvv0P4YfC8P5I3AzacKysw1ytng/exec";
         const CACHE_KEY = "gchurch_cell_data_cache";
@@ -731,8 +729,6 @@
         let isAdminAuthenticated = false;
 
         let allData = [];
-        let sermonPlayer;
-        let isApiReady = false;
         let currentView = 'user';
 
         if (window.marked) {
@@ -905,26 +901,21 @@
             const titleEl = document.getElementById('sermonTitleDisplay');
             if (titleEl) titleEl.textContent = item.sermon_title || item.title || "";
 
+            // 찬양 영상처럼 순수 반응형 iframe으로 통일하여 자동 재생 원천 방지
             const sermonVid = extractYoutubeId(item.sermon_video || item.youtube);
             const videoBox = document.getElementById('sermonVideoBox');
+            const sermonFrame = document.getElementById('sermonPlayerFrame');
             if (videoBox) {
                 if (sermonVid) {
                     videoBox.style.display = "block";
-                    if (isApiReady && document.getElementById('sermonPlayerFrame')) {
-                        if (!sermonPlayer) {
-                            sermonPlayer = new YT.Player('sermonPlayerFrame', {
-                                videoId: sermonVid,
-                                playerVars: { 'rel': 0, 'autoplay': 0, 'enablejsapi': 1, 'origin': location.origin }
-                            });
-                        } else {
-                            // 자동 재생 방지: loadVideoById 대신 cueVideoById 사용
-                            sermonPlayer.cueVideoById(sermonVid);
-                        }
+                    if (sermonFrame) {
+                        sermonFrame.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${sermonVid}?rel=0&autoplay=0" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                     }
                     const directLink = document.getElementById('sermonDirectLink');
                     if (directLink) directLink.href = `https://www.youtube.com/watch?v=${sermonVid}`;
                 } else {
                     videoBox.style.display = "none";
+                    if (sermonFrame) sermonFrame.innerHTML = "";
                 }
             }
 
@@ -977,7 +968,7 @@
 
             if (id) {
                 wrapper.classList.remove('hidden');
-                if (videoEl) videoEl.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?rel=0" frameborder="0" allowfullscreen></iframe>`;
+                if (videoEl) videoEl.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?rel=0&autoplay=0" frameborder="0" allowfullscreen></iframe>`;
                 if (linkEl) linkEl.href = `https://www.youtube.com/watch?v=${id}`;
             } else {
                 wrapper.classList.add('hidden');
@@ -993,20 +984,6 @@
         function toggleAccordion(id) {
             const el = document.getElementById(id);
             if (el) el.classList.toggle('active');
-        }
-
-        function onYouTubeIframeAPIReady() {
-            isApiReady = true;
-            if (allData.length > 0) {
-                const item = allData[0];
-                const vid = extractYoutubeId(item.sermon_video || item.youtube);
-                if (vid && !sermonPlayer && document.getElementById('sermonPlayerFrame')) {
-                    sermonPlayer = new YT.Player('sermonPlayerFrame', {
-                        videoId: vid,
-                        playerVars: { 'rel': 0, 'autoplay': 0, 'enablejsapi': 1, 'origin': location.origin }
-                    });
-                }
-            }
         }
 
         function openCovenantModal() {
@@ -1145,7 +1122,7 @@
             d.onchange = (e) => { currentRoomDate = e.target.value; renderIntegratedGrid(); };
         }
 
-        // 전역 콜백: 셀방 예약 데이터 수신 (모바일 브라우저 100% 호환)
+        // 전역 콜백: 셀방 예약 데이터 수신
         window.onRoomDataReceived = function(data) {
             const syncStatus = document.getElementById('roomSyncStatus');
             if (syncStatus) syncStatus.textContent = "데이터 동기화 완료";
@@ -1166,7 +1143,7 @@
             if (roomModal && !roomModal.classList.contains('hidden')) renderIntegratedGrid();
         };
 
-        // 모바일 브라우저의 302 리디렉션 및 CORS 이슈를 방지하는 듀얼 파이프라인 호출
+        // 모바일 브라우저 대응 JSONP + Fetch fallback
         function fetchRoomDataFromServer(forceUpdate) {
             const syncStatus = document.getElementById('roomSyncStatus');
             if (syncStatus) syncStatus.textContent = "최신 데이터 확인 중...";
@@ -1174,12 +1151,10 @@
             const existingScript = document.getElementById('gas-room-jsonp');
             if (existingScript) existingScript.remove();
 
-            // 1차 시도: JSONP 방식 (모바일 ITP/CORS 완벽 우회)
             const script = document.createElement('script');
             script.id = 'gas-room-jsonp';
             script.src = `${ROOM_SCRIPT_URL}?action=read&callback=onRoomDataReceived&t=${new Date().getTime()}`;
             
-            // 2차 시도: 만약 GAS doGet이 callback을 파싱하지 않는 구조일 경우 fetch fallback 실행
             script.onerror = async function() {
                 try {
                     const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
@@ -1217,7 +1192,6 @@
             const isToday = (currentRoomDate === getTodayString());
             const nowH = new Date().getHours();
             
-            // 모바일 사파리 호환 날짜 객체 파싱 (YYYY-MM-DD 대응)
             const dateParts = currentRoomDate.split('-');
             const selDate = new Date(dateParts[0], parseInt(dateParts[1], 10) - 1, dateParts[2]);
             const isSunday = selDate.getDay() === 0;
