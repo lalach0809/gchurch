@@ -213,7 +213,7 @@
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> 동기화 중
                                 </span>
                             </div>
-                            <h2 class="text-base sm:text-xl font-bold text-slate-800 tracking-tight leading-tight whitespace-nowrap">구리지구촌교회 목장</h2>
+                            <h2 class="text-base sm:text-xl font-bold text-slate-800 tracking-tight leading-tight whitespace-nowrap">구리지구촌교회 목장교회</h2>
                         </div>
                     </div>
 
@@ -239,7 +239,7 @@
             </header>
 
             <!-- 비전 배너 -->
-            <div class="mb-4 bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/90 rounded-xl p-3.5 shadow-xs">
+            <div class="mb-3 bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/90 rounded-xl p-3.5 shadow-xs">
                 <div class="flex items-center gap-2 mb-1.5">
                     <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
                     <h3 class="text-xs font-bold text-indigo-950 uppercase tracking-wider">목장교회의 비전과 사명</h3>
@@ -247,6 +247,23 @@
                 <p class="text-[12px] sm:text-[13px] text-slate-600 leading-relaxed font-normal break-keep">
                     복음 전도를 통해 구원받은 영혼에게 가족구조를 제공하고 그들의 교회정착과 영적성숙 및 공동체적 사역(선교와 구제)을 도우며, 더 나아가 목장교회의 재생산(배가)을 통한 하나님 나라 확장에 기여하고자 합니다.
                 </p>
+            </div>
+
+            <!-- [추가] 선택된 모임 정보 표시 배너 -->
+            <div id="selectedMeetingBanner" class="mb-4 bg-white border border-indigo-200 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded leading-none border border-indigo-100">선택된 모임</span>
+                            <span id="selectedMeetingDate" class="text-xs font-semibold text-slate-500"></span>
+                        </div>
+                        <h4 id="selectedMeetingTitle" class="text-sm font-bold text-slate-800 truncate"></h4>
+                    </div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-400 shrink-0 hidden sm:inline-block">상세 안내 중</span>
             </div>
 
             <!-- 6대 섹션 -->
@@ -758,7 +775,6 @@
             return text.replace(/\n/g, '<br>');
         }
 
-        // 강제 로딩 해제 (화면 멈춤 완전 차단)
         function forceHideLoading() {
             const loading = document.getElementById('loading');
             const dashboard = document.getElementById('dashboard');
@@ -771,7 +787,7 @@
             const displayDateEl = document.getElementById('displayTodayDate');
             if (displayDateEl) displayDateEl.textContent = getTodayFormatted();
 
-            // 1. 캐시가 있으면 즉시 렌더링
+            // 1. 로컬 캐시 즉시 렌더링
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) {
                 try {
@@ -784,11 +800,11 @@
                 } catch(e) {}
             }
 
-            // 2. 화면 스켈레톤은 0.8초 후 무조건 강제 종료
-            setTimeout(forceHideLoading, 800);
+            // 2. 브라우저 스피너 차단을 위해 즉시 스켈레톤 숨김 해제
+            setTimeout(forceHideLoading, 300);
 
-            // 3. 백그라운드에서 최신 데이터 수신 (CORS 완벽 우회 JSONP)
-            fetchLatestDataJSONP();
+            // 3. 백그라운드 데이터 수신 (fetch 우선 시도로 브라우저 탭 회전 방지)
+            fetchLatestData();
             try { initRoomReservationData(); } catch(e){}
         });
 
@@ -803,7 +819,24 @@
                 });
         }
 
-        // 전역 콜백 함수 (목장 자료 JSONP 수신부)
+        // 브라우저 탭 무한 회전을 방지하기 위해 fetch를 기본으로 사용
+        async function fetchLatestData() {
+            const syncIndicator = document.getElementById('syncIndicator');
+            if (syncIndicator) {
+                syncIndicator.classList.remove('hidden');
+                syncIndicator.classList.add('inline-flex');
+            }
+
+            try {
+                const res = await fetch(`${API_URL}?t=${new Date().getTime()}`);
+                const data = await res.json();
+                onCellDataReceived(data);
+            } catch(e) {
+                // CORS 등으로 fetch 실패 시 안전하게 JSONP 보조 시도
+                fetchLatestDataJSONP();
+            }
+        }
+
         window.onCellDataReceived = function(data) {
             const syncIndicator = document.getElementById('syncIndicator');
             if (syncIndicator) {
@@ -827,12 +860,6 @@
         };
 
         function fetchLatestDataJSONP() {
-            const syncIndicator = document.getElementById('syncIndicator');
-            if (syncIndicator) {
-                syncIndicator.classList.remove('hidden');
-                syncIndicator.classList.add('inline-flex');
-            }
-
             const existingScript = document.getElementById('gas-jsonp-script');
             if (existingScript) existingScript.remove();
 
@@ -840,25 +867,13 @@
             script.id = 'gas-jsonp-script';
             script.src = `${API_URL}?callback=onCellDataReceived&t=${new Date().getTime()}`;
             script.onerror = function() {
-                console.warn("JSONP 호출 지연 -> 표준 Fetch로 백업 시도");
-                fetchLatestDataFallback();
+                forceHideLoading();
             };
             document.body.appendChild(script);
         }
 
-        async function fetchLatestDataFallback() {
-            try {
-                const res = await fetch(`${API_URL}?t=${new Date().getTime()}`);
-                const data = await res.json();
-                window.onCellDataReceived(data);
-            } catch(e) {
-                console.error("Fetch도 실패:", e);
-                forceHideLoading();
-            }
-        }
-
         function refreshDataManually() {
-            fetchLatestDataJSONP();
+            fetchLatestData();
             fetchRoomDataFromServer(true);
         }
 
@@ -889,6 +904,14 @@
         function renderContent(item) {
             if (!item) return;
 
+            // [추가] 비전 배너와 목장원 환영 사이 정보 카드 갱신
+            const bannerDate = document.getElementById('selectedMeetingDate');
+            const bannerTitle = document.getElementById('selectedMeetingTitle');
+            const dateStr = item.date ? String(item.date).substring(0, 10) : "날짜 미상";
+            const sermonTitle = item.sermon_title || item.title || "제목 없음";
+            if (bannerDate) bannerDate.textContent = dateStr;
+            if (bannerTitle) bannerTitle.textContent = sermonTitle;
+
             updateMarkdownSection('sec1Accordion', 'welcomeBody', item.welcome);
             
             renderVideoCard(item.praise_gospel || item.praise1, 'gospelWrapper', 'gospelVideo', 'gospelLink');
@@ -899,9 +922,8 @@
 
             updateMarkdownSubItem('reviewBox', 'reviewBody', item.sermon_review);
             const titleEl = document.getElementById('sermonTitleDisplay');
-            if (titleEl) titleEl.textContent = item.sermon_title || item.title || "";
+            if (titleEl) titleEl.textContent = sermonTitle;
 
-            // 찬양 영상처럼 순수 반응형 iframe으로 통일하여 자동 재생 원천 방지
             const sermonVid = extractYoutubeId(item.sermon_video || item.youtube);
             const videoBox = document.getElementById('sermonVideoBox');
             const sermonFrame = document.getElementById('sermonPlayerFrame');
@@ -1097,7 +1119,7 @@
 
                 setTimeout(() => {
                     switchView('user');
-                    fetchLatestDataJSONP();
+                    fetchLatestData();
                 }, 1200);
             } catch(err) {
                 msg.className = "p-3 rounded-lg text-center text-xs font-bold bg-red-50 text-red-700 border border-red-200 block";
@@ -1122,7 +1144,6 @@
             d.onchange = (e) => { currentRoomDate = e.target.value; renderIntegratedGrid(); };
         }
 
-        // 전역 콜백: 셀방 예약 데이터 수신
         window.onRoomDataReceived = function(data) {
             const syncStatus = document.getElementById('roomSyncStatus');
             if (syncStatus) syncStatus.textContent = "데이터 동기화 완료";
@@ -1143,29 +1164,26 @@
             if (roomModal && !roomModal.classList.contains('hidden')) renderIntegratedGrid();
         };
 
-        // 모바일 브라우저 대응 JSONP + Fetch fallback
-        function fetchRoomDataFromServer(forceUpdate) {
+        async function fetchRoomDataFromServer(forceUpdate) {
             const syncStatus = document.getElementById('roomSyncStatus');
             if (syncStatus) syncStatus.textContent = "최신 데이터 확인 중...";
 
-            const existingScript = document.getElementById('gas-room-jsonp');
-            if (existingScript) existingScript.remove();
+            try {
+                const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
+                const data = await res.json();
+                window.onRoomDataReceived(data);
+            } catch(e) {
+                const existingScript = document.getElementById('gas-room-jsonp');
+                if (existingScript) existingScript.remove();
 
-            const script = document.createElement('script');
-            script.id = 'gas-room-jsonp';
-            script.src = `${ROOM_SCRIPT_URL}?action=read&callback=onRoomDataReceived&t=${new Date().getTime()}`;
-            
-            script.onerror = async function() {
-                try {
-                    const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
-                    const data = await res.json();
-                    window.onRoomDataReceived(data);
-                } catch(e) {
-                    console.warn("셀방 데이터 수신 오류 (캐시 데이터 사용):", e);
+                const script = document.createElement('script');
+                script.id = 'gas-room-jsonp';
+                script.src = `${ROOM_SCRIPT_URL}?action=read&callback=onRoomDataReceived&t=${new Date().getTime()}`;
+                script.onerror = function() {
                     if (syncStatus) syncStatus.textContent = "오프라인/캐시 모드";
-                }
-            };
-            document.body.appendChild(script);
+                };
+                document.body.appendChild(script);
+            }
         }
 
         function openRoomReservationModal() {
