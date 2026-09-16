@@ -426,7 +426,7 @@
         </div>
     </main>
 
-    <!-- 2. 관리자 모달 및 셀방 모달 -->
+    <!-- 2. 관리자 화면 -->
     <section id="adminView" class="hidden max-w-3xl mx-auto px-4 pt-5">
         <div class="mb-4 flex items-center justify-between pb-3 border-b border-slate-200">
             <div class="flex items-center gap-3">
@@ -597,7 +597,7 @@
                 <!-- 목자 서약서 -->
                 <div id="tabContentPledge" class="hidden space-y-3">
                     <div class="bg-amber-50/80 border border-amber-200/70 rounded-xl p-3 text-center mb-3">
-                        <h4 class="font-bold text-amber-950 text-sm sm:text-base">목장교회 목자 서약서</h4>[cite: 3]
+                        <h4 class="font-bold text-amber-950 text-sm sm:text-base">목장교회 목자 서약서</h4>
                     </div>
 
                     <p class="font-semibold text-slate-800 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 text-xs sm:text-[13px] leading-relaxed">
@@ -748,7 +748,13 @@
             return `${year}-${month}-${date} (${dayNames[now.getDay()]})`;
         }
 
-        const getTodayString = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        const getTodayString = () => {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
 
         function renderNotionMarkdown(text) {
             if (!text || !text.trim()) return "";
@@ -801,7 +807,7 @@
                 });
         }
 
-        // 전역 콜백 함수 (JSONP 수신부)
+        // 전역 콜백 함수 (목장 자료 JSONP 수신부)
         window.onCellDataReceived = function(data) {
             const syncIndicator = document.getElementById('syncIndicator');
             if (syncIndicator) {
@@ -831,11 +837,9 @@
                 syncIndicator.classList.add('inline-flex');
             }
 
-            // 기존 스크립트 태그 제거
             const existingScript = document.getElementById('gas-jsonp-script');
             if (existingScript) existingScript.remove();
 
-            // JSONP 스크립트 동적 주입 (CORS 302 리디렉션 에러 완벽 해결)
             const script = document.createElement('script');
             script.id = 'gas-jsonp-script';
             script.src = `${API_URL}?callback=onCellDataReceived&t=${new Date().getTime()}`;
@@ -846,7 +850,6 @@
             document.body.appendChild(script);
         }
 
-        // 백업용 표준 Fetch
         async function fetchLatestDataFallback() {
             try {
                 const res = await fetch(`${API_URL}?t=${new Date().getTime()}`);
@@ -911,10 +914,11 @@
                         if (!sermonPlayer) {
                             sermonPlayer = new YT.Player('sermonPlayerFrame', {
                                 videoId: sermonVid,
-                                playerVars: { 'rel': 0, 'enablejsapi': 1, 'origin': location.origin }
+                                playerVars: { 'rel': 0, 'autoplay': 0, 'enablejsapi': 1, 'origin': location.origin }
                             });
                         } else {
-                            sermonPlayer.loadVideoById(sermonVid);
+                            // 자동 재생 방지: loadVideoById 대신 cueVideoById 사용
+                            sermonPlayer.cueVideoById(sermonVid);
                         }
                     }
                     const directLink = document.getElementById('sermonDirectLink');
@@ -999,7 +1003,7 @@
                 if (vid && !sermonPlayer && document.getElementById('sermonPlayerFrame')) {
                     sermonPlayer = new YT.Player('sermonPlayerFrame', {
                         videoId: vid,
-                        playerVars: { 'rel': 0, 'enablejsapi': 1, 'origin': location.origin }
+                        playerVars: { 'rel': 0, 'autoplay': 0, 'enablejsapi': 1, 'origin': location.origin }
                     });
                 }
             }
@@ -1071,7 +1075,7 @@
             if (target === 'admin') {
                 uv.classList.add('hidden'); av.classList.remove('hidden');
                 if (!document.getElementById('inputDate').value) {
-                    document.getElementById('inputDate').value = new Date().toISOString().substring(0, 10);
+                    document.getElementById('inputDate').value = getTodayString();
                 }
             } else {
                 av.classList.add('hidden'); uv.classList.remove('hidden');
@@ -1141,24 +1145,52 @@
             d.onchange = (e) => { currentRoomDate = e.target.value; renderIntegratedGrid(); };
         }
 
-        async function fetchRoomDataFromServer() {
-            try {
-                const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
-                const data = await res.json();
-                const newCache = {};
-                if (Array.isArray(data)) {
-                    data.forEach(item => {
-                        const d = item.date;
-                        if (!newCache[d]) newCache[d] = {};
-                        if (!newCache[d][item.room]) newCache[d][item.room] = [];
-                        newCache[d][item.room].push(item);
-                    });
+        // 전역 콜백: 셀방 예약 데이터 수신 (모바일 브라우저 100% 호환)
+        window.onRoomDataReceived = function(data) {
+            const syncStatus = document.getElementById('roomSyncStatus');
+            if (syncStatus) syncStatus.textContent = "데이터 동기화 완료";
+
+            const newCache = {};
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    if (!item || !item.date) return;
+                    const d = String(item.date).substring(0, 10);
+                    if (!newCache[d]) newCache[d] = {};
+                    if (!newCache[d][item.room]) newCache[d][item.room] = [];
+                    newCache[d][item.room].push(item);
+                });
+            }
+            serverRoomDataCache = newCache;
+            localStorage.setItem(ROOM_CACHE_KEY, JSON.stringify(serverRoomDataCache));
+            const roomModal = document.getElementById('roomModal');
+            if (roomModal && !roomModal.classList.contains('hidden')) renderIntegratedGrid();
+        };
+
+        // 모바일 브라우저의 302 리디렉션 및 CORS 이슈를 방지하는 듀얼 파이프라인 호출
+        function fetchRoomDataFromServer(forceUpdate) {
+            const syncStatus = document.getElementById('roomSyncStatus');
+            if (syncStatus) syncStatus.textContent = "최신 데이터 확인 중...";
+
+            const existingScript = document.getElementById('gas-room-jsonp');
+            if (existingScript) existingScript.remove();
+
+            // 1차 시도: JSONP 방식 (모바일 ITP/CORS 완벽 우회)
+            const script = document.createElement('script');
+            script.id = 'gas-room-jsonp';
+            script.src = `${ROOM_SCRIPT_URL}?action=read&callback=onRoomDataReceived&t=${new Date().getTime()}`;
+            
+            // 2차 시도: 만약 GAS doGet이 callback을 파싱하지 않는 구조일 경우 fetch fallback 실행
+            script.onerror = async function() {
+                try {
+                    const res = await fetch(`${ROOM_SCRIPT_URL}?action=read&t=${new Date().getTime()}`);
+                    const data = await res.json();
+                    window.onRoomDataReceived(data);
+                } catch(e) {
+                    console.warn("셀방 데이터 수신 오류 (캐시 데이터 사용):", e);
+                    if (syncStatus) syncStatus.textContent = "오프라인/캐시 모드";
                 }
-                serverRoomDataCache = newCache;
-                localStorage.setItem(ROOM_CACHE_KEY, JSON.stringify(serverRoomDataCache));
-                const roomModal = document.getElementById('roomModal');
-                if (roomModal && !roomModal.classList.contains('hidden')) renderIntegratedGrid();
-            } catch(e){}
+            };
+            document.body.appendChild(script);
         }
 
         function openRoomReservationModal() {
@@ -1168,6 +1200,7 @@
                 if (!currentRoomDate) currentRoomDate = getTodayString();
                 document.getElementById('reservation-date').value = currentRoomDate;
                 renderIntegratedGrid();
+                fetchRoomDataFromServer(true);
                 if (window.lucide) lucide.createIcons();
             }
         }
@@ -1183,7 +1216,10 @@
 
             const isToday = (currentRoomDate === getTodayString());
             const nowH = new Date().getHours();
-            const selDate = new Date(currentRoomDate);
+            
+            // 모바일 사파리 호환 날짜 객체 파싱 (YYYY-MM-DD 대응)
+            const dateParts = currentRoomDate.split('-');
+            const selDate = new Date(dateParts[0], parseInt(dateParts[1], 10) - 1, dateParts[2]);
             const isSunday = selDate.getDay() === 0;
             const isMarch = selDate.getMonth() === 2;
 
