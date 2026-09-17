@@ -249,7 +249,7 @@
                 </p>
             </div>
 
-            <!-- [추가] 선택된 모임 정보 표시 배너 -->
+            <!-- 선택된 모임 정보 표시 배너 -->
             <div id="selectedMeetingBanner" class="mb-4 bg-white border border-indigo-200 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
@@ -666,6 +666,42 @@
             </div>
 
             <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+                
+                <!-- [추가] 호실 안내 섹션 -->
+                <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 shadow-xs">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-5 h-5 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-700">
+                            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-800">셀방 및 공간 구성 안내</h4>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-start gap-2">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[11px] shrink-0 border border-blue-100">셀방 (6인실)</span>
+                            <span class="text-slate-700 font-medium leading-tight pt-0.5">601, 602, 604, 605, 606, 607호</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200/80 flex flex-col justify-center">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[11px] shrink-0 border border-indigo-100">셀방 (12인실)</span>
+                                <span class="text-slate-700 font-bold">603호</span>
+                            </div>
+                            <span class="text-[11px] text-amber-700 mt-1 font-medium bg-amber-50 px-1.5 py-0.5 rounded inline-block w-fit border border-amber-100">※ 시니어분들을 위해 배려 부탁드립니다</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-center gap-2">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[11px] shrink-0 border border-emerald-100">교육훈련실</span>
+                            <span class="text-slate-700 font-semibold">611호</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-center gap-2">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold text-[11px] shrink-0 border border-rose-100">자모실</span>
+                            <span class="text-slate-700 font-semibold">612호</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-center gap-2 sm:col-span-2">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-bold text-[11px] shrink-0 border border-purple-100">중보기도실 & 전폭실</span>
+                            <span class="text-slate-700 font-semibold">613호</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="inquiry-section" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -787,7 +823,6 @@
             const displayDateEl = document.getElementById('displayTodayDate');
             if (displayDateEl) displayDateEl.textContent = getTodayFormatted();
 
-            // 1. 로컬 캐시 즉시 렌더링
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) {
                 try {
@@ -800,10 +835,8 @@
                 } catch(e) {}
             }
 
-            // 2. 브라우저 스피너 차단을 위해 즉시 스켈레톤 숨김 해제
             setTimeout(forceHideLoading, 300);
 
-            // 3. 백그라운드 데이터 수신 (fetch 우선 시도로 브라우저 탭 회전 방지)
             fetchLatestData();
             try { initRoomReservationData(); } catch(e){}
         });
@@ -819,7 +852,6 @@
                 });
         }
 
-        // 브라우저 탭 무한 회전을 방지하기 위해 fetch를 기본으로 사용
         async function fetchLatestData() {
             const syncIndicator = document.getElementById('syncIndicator');
             if (syncIndicator) {
@@ -832,7 +864,6 @@
                 const data = await res.json();
                 onCellDataReceived(data);
             } catch(e) {
-                // CORS 등으로 fetch 실패 시 안전하게 JSONP 보조 시도
                 fetchLatestDataJSONP();
             }
         }
@@ -904,7 +935,6 @@
         function renderContent(item) {
             if (!item) return;
 
-            // [추가] 비전 배너와 목장원 환영 사이 정보 카드 갱신
             const bannerDate = document.getElementById('selectedMeetingDate');
             const bannerTitle = document.getElementById('selectedMeetingTitle');
             const dateStr = item.date ? String(item.date).substring(0, 10) : "날짜 미상";
@@ -931,7 +961,7 @@
                 if (sermonVid) {
                     videoBox.style.display = "block";
                     if (sermonFrame) {
-                        sermonFrame.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${sermonVid}?rel=0&autoplay=0" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                        sermonFrame.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${sermonVid}?rel=0&autoplay=0" frameborder="0" allowfullscreen></iframe>`;
                     }
                     const directLink = document.getElementById('sermonDirectLink');
                     if (directLink) directLink.href = `https://www.youtube.com/watch?v=${sermonVid}`;
