@@ -163,7 +163,7 @@
     <div class="ambient-bg"></div>
 
     <!-- 1. 메인 사용자 화면 -->
-    <main id="userView" class="max-w-3xl mx-auto px-4 pt-5">
+    <main id="userView" class="max-w-4xl mx-auto px-4 pt-5">
         
         <!-- 로딩 스켈레톤 -->
         <div id="loading" class="space-y-4 py-2">
@@ -186,9 +186,6 @@
                 <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-amber-100"></div><div class="w-28 h-4 bg-slate-200 rounded"></div></div></div>
                 <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-purple-100"></div><div class="w-36 h-4 bg-slate-200 rounded"></div></div></div>
                 <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-blue-100"></div><div class="w-40 h-4 bg-slate-200 rounded"></div></div></div>
-                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-teal-100"></div><div class="w-32 h-4 bg-slate-200 rounded"></div></div></div>
-                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-indigo-100"></div><div class="w-32 h-4 bg-slate-200 rounded"></div></div></div>
-                <div class="p-3.5 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-slate-200"></div><div class="w-36 h-4 bg-slate-200 rounded"></div></div></div>
             </div>
 
             <div class="flex items-center justify-center gap-2 pt-3">
@@ -200,7 +197,7 @@
         <div id="dashboard" class="hidden">
             <!-- 헤더 영역 -->
             <header class="mb-3 pb-3 border-b border-slate-200">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                     
                     <div class="flex items-center gap-3 shrink-0">
                         <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm text-white shrink-0 cursor-pointer" onclick="refreshDataManually()" title="새로고침">
@@ -218,7 +215,17 @@
                     </div>
 
                     <!-- 우측 버튼군 -->
-                    <div class="flex items-center flex-wrap gap-2 pt-1 sm:pt-0">
+                    <div class="flex items-center flex-wrap gap-2 pt-1 md:pt-0">
+                        <!-- 웹 내부 보고서 작성 모달 열기 -->
+                        <button onclick="openReportModal()" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-emerald-200 shadow-xs">
+                            <i data-lucide="file-edit" class="w-3.5 h-3.5 text-emerald-600"></i> 목장서신 작성
+                        </button>
+
+                        <!-- 시트 조회 (9개 계정 인증) -->
+                        <button onclick="handleSheetAuthClick()" class="text-xs font-semibold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100/80 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-sky-200 shadow-xs">
+                            <i data-lucide="table" class="w-3.5 h-3.5 text-sky-600"></i> 목장서신 조회
+                        </button>
+
                         <button onclick="openCovenantModal()" class="text-xs font-semibold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/80 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-amber-200/80 shadow-xs">
                             <i data-lucide="scroll" class="w-3.5 h-3.5 text-amber-600"></i> 서약 & 언약
                         </button>
@@ -443,7 +450,7 @@
         </div>
     </main>
 
-    <!-- 2. 관리자 화면 -->
+    <!-- 2. 관리자 화면 (모임 기본자료 등록) -->
     <section id="adminView" class="hidden max-w-3xl mx-auto px-4 pt-5">
         <div class="mb-4 flex items-center justify-between pb-3 border-b border-slate-200">
             <div class="flex items-center gap-3">
@@ -541,6 +548,171 @@
         </form>
     </section>
 
+    <!-- [신규] 웹 자체 목장 모임 보고서 작성 모달 (구글 폼 대체) -->
+    <div id="reportModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                        <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base">목장 모임 보고서 작성</h3>
+                        <p class="text-[11px] text-slate-400">작성하신 내용은 구글 시트에 실시간으로 자동 저장됩니다.</p>
+                    </div>
+                </div>
+                <button onclick="closeReportModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="directReportForm" onsubmit="handleReportSubmit(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs sm:text-[13px]">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">목장명 <span class="text-red-500">*</span></label>
+                        <input type="text" id="repGroup" required placeholder="예: 믿음목장" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">작성자 (목자 성함) <span class="text-red-500">*</span></label>
+                        <input type="text" id="repLeader" required placeholder="목자 성함" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">모임 일자 <span class="text-red-500">*</span></label>
+                        <input type="date" id="repDate" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">모임 장소</label>
+                        <input type="text" id="repPlace" placeholder="예: 셀방 602호, 가정 등" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">참석 인원 (명)</label>
+                        <input type="number" id="repCount" min="1" placeholder="예: 6" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">참석자 명단</label>
+                    <input type="text" id="repAttendees" placeholder="참석하신 목장원 성함을 쉼표로 입력해주세요." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">말씀 및 삶의 나눔 요약</label>
+                    <textarea id="repSummary" rows="3" placeholder="은혜받은 말씀 또는 목장원들의 나눔 요약" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">중보기도 제목</label>
+                    <textarea id="repPrayers" rows="3" placeholder="목장과 지체들을 위한 중보기도 제목" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">교회 건의사항 및 소식</label>
+                    <textarea id="repSuggestions" rows="2" placeholder="사역팀 또는 교회에 전달할 요청이나 알림 사항" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea>
+                </div>
+
+                <div id="reportStatusMessage" class="hidden p-2.5 rounded-lg text-center text-xs font-bold"></div>
+
+                <div class="pt-2 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeReportModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">취소</button>
+                    <button type="submit" id="reportSubmitBtn" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition-all flex items-center gap-1.5 text-xs">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i> 보고서 시트에 등록하기
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 9개 목장 계정 로그인 인증 모달 -->
+    <div id="sheetLoginModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-100">
+            <div class="flex items-center gap-2.5 mb-2">
+                <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center shadow-xs">
+                    <i data-lucide="key" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">목장 시트 조회 로그인</h3>
+                    <p class="text-[11px] text-slate-400">인증된 9개 목장 계정 전용</p>
+                </div>
+            </div>
+            
+            <form onsubmit="handleSheetLogin(event)" class="space-y-3 mt-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">아이디</label>
+                    <input type="text" id="sheetAuthId" required placeholder="예: leader1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/30">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">비밀번호</label>
+                    <input type="password" id="sheetAuthPw" required placeholder="비밀번호" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/30">
+                </div>
+                <p id="sheetLoginError" class="text-xs text-red-500 hidden font-semibold">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+                
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" onclick="closeSheetLoginModal()" class="flex-1 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">취소</button>
+                    <button type="submit" class="flex-1 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-lg transition-colors">로그인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 시트 응답 데이터 조회 뷰어 모달 -->
+    <div id="sheetViewerModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-5xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center">
+                        <i data-lucide="database" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-slate-900 text-sm sm:text-base">목장 보고서 제출 현황</h3>
+                            <span id="currentLoggedUserBadge" class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full"></span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">구글 시트에 등록된 실시간 목장 보고서</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="fetchSheetResponses(true)" class="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1 shadow-xs">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-sky-600"></i> 새로고침
+                    </button>
+                    <button onclick="logoutSheetSession()" class="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-red-100">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> 로그아웃
+                    </button>
+                    <button onclick="closeSheetViewerModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 시트 검색 & 카운트 바 -->
+            <div class="p-3 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <div class="relative w-full sm:w-72">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                    <input type="text" id="sheetSearchInput" oninput="filterSheetTable()" placeholder="목장명, 목자, 내용 검색..." class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                </div>
+                <span id="sheetRecordCount" class="text-xs text-slate-500 font-medium">총 0건</span>
+            </div>
+
+            <!-- 테이블 뷰어 영역 -->
+<!-- 테이블 대신 세로 카드형 컨테이너 적용 -->
+            <div class="p-4 overflow-y-auto flex-1 bg-slate-50/50">
+                <div id="sheetLoadingIndicator" class="text-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-2 border-sky-600 border-t-transparent mx-auto mb-3"></div>
+                    <p class="text-xs text-slate-400 font-medium">구글 시트 데이터를 안전하게 불러오고 있습니다...</p>
+                </div>
+
+                <!-- 세로 카드 목록 영역 -->
+                <div id="sheetCardContainer" class="hidden space-y-4"></div>
+
+                <div id="sheetEmptyNotice" class="hidden text-center py-12 text-slate-400 text-xs font-medium">
+                    등록된 목장 보고서 내역이 없습니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 서약서 & 언약 모달 -->
     <div id="covenantModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
@@ -566,7 +738,6 @@
             </div>
 
             <div class="p-5 overflow-y-auto space-y-4 text-xs sm:text-[13px] leading-relaxed text-slate-700">
-                <!-- 코이노니아 언약 -->
                 <div id="tabContentCovenant" class="space-y-3">
                     <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 text-center mb-3">
                         <h4 class="font-bold text-indigo-950 text-sm">목장교회 코이노니아 언약</h4>
@@ -574,36 +745,16 @@
                     </div>
 
                     <div class="space-y-2.5">
-                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
-                            <span class="font-bold text-indigo-700 mr-1.5">[목자 1]</span> 우리는 우리의 목장교회를 통해 예수 그리스도를 주로 높이고 하나님께 영광을 돌리기 위하여 주께서 연결시켜 주신 신령한 영적 지체들임을 고백한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                            <span class="font-bold text-slate-700 mr-1.5">[목장원 2]</span> 우리는 우리 목장교회에서 초대교회 공동체처럼 순수한 사랑과 겸허한 섬김의 교제가 이루어지도록 각자의 자리에서 최선의 노력을 다하고자 한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
-                            <span class="font-bold text-indigo-700 mr-1.5">[목자 3]</span> 우리는 우리 목장교회를 통해 말씀을 나눌 때, 한 사람이 겸손하게 자기의 깨달은 바를 말하되 한 사람이 대화 중 많은 시간을 독점하지 않고 모든 목장원이 함께 골고루 나누도록 격려한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                            <span class="font-bold text-slate-700 mr-1.5">[목장원 4]</span> 무엇보다 우리는 예수 그리스도를 우리의 궁극적 지도자로 삼고 그의 권위 아래서 교제하되 또한 우리 목장교회의 목자를 주께서 세워주신 리더로 인정하며 그를 따르고 그를 위하여 기도할 것을 서약한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
-                            <span class="font-bold text-indigo-700 mr-1.5">[목자 5]</span> 우리는 목장교회를 통해 우리의 교제를 깨뜨릴 수 있는 교리, 이념, 정치성향 등과 같은 논쟁적 발언이나 특정한 대상에 대한 비판적 발언을 하지 않기로 서약한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                            <span class="font-bold text-slate-700 mr-1.5">[목장원 6]</span> 무엇보다 목장교회원 상호간에 어려움을 극복할 수 있도록 기도의 짐을 지고 중보기도에 최선을 다하기로 약속한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
-                            <span class="font-bold text-indigo-700 mr-1.5">[목자 7]</span> 우리는 자기 자신의 삶의 어려움이나 문제가 있을 때는 할 수 있는 한 서로의 기도제목을 거리낌 없이 신속하게 목장교회에 알리고, 위하여 기도하기로 언약한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                            <span class="font-bold text-slate-700 mr-1.5">[목장원 8]</span> 우리는 목장교회원 상호간에 어려움을 돕는 일에 최선을 다하되, 그로 말미암은 불필요한 오해나 교제의 부담이 없도록 하기 위하여 꾸거나, 꾸어 주는 일들의 돈거래 그리고 계모임 등은 일체 하지 않기로 언약한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70">
-                            <span class="font-bold text-indigo-700 mr-1.5">[목자 9]</span> 우리들의 목장교회를 통하여 주님을 닮아가며 주 뜻대로 살아가고자 주께서 명하신 성령충만을 이루기 위하여 성령충만을 방해하는 주류사용(술 취함), 불건전한 오락(도박), 그리고 교회나 개인에 대한 비방을 일체 금하기로 한다.
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                            <span class="font-bold text-slate-700 mr-1.5">[목장원 10]</span> 말씀과 기도는 우리들의 교제의 수단이며, 거룩함은 우리들의 교제의 태도이며, 세계선교와 이웃사랑은 우리들의 교제의 궁극적인 목표임을 우리는 명심할 것이다.
-                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70"><span class="font-bold text-indigo-700 mr-1.5">[목자 1]</span> 우리는 우리의 목장교회를 통해 예수 그리스도를 주로 높이고 하나님께 영광을 돌리기 위하여 주께서 연결시켜 주신 신령한 영적 지체들임을 고백한다.</div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80"><span class="font-bold text-slate-700 mr-1.5">[목장원 2]</span> 우리는 우리 목장교회에서 초대교회 공동체처럼 순수한 사랑과 겸허한 섬김의 교제가 이루어지도록 각자의 자리에서 최선의 노력을 다하고자 한다.</div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70"><span class="font-bold text-indigo-700 mr-1.5">[목자 3]</span> 우리는 우리 목장교회를 통해 말씀을 나눌 때, 한 사람이 겸손하게 자기의 깨달은 바를 말하되 한 사람이 대화 중 많은 시간을 독점하지 않고 모든 목장원이 함께 골고루 나누도록 격려한다.</div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80"><span class="font-bold text-slate-700 mr-1.5">[목장원 4]</span> 무엇보다 우리는 예수 그리스도를 우리의 궁극적 지도자로 삼고 그의 권위 아래서 교제하되 또한 우리 목장교회의 목자를 주께서 세워주신 리더로 인정하며 그를 따르고 그를 위하여 기도할 것을 서약한다.</div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70"><span class="font-bold text-indigo-700 mr-1.5">[목자 5]</span> 우리는 목장교회를 통해 우리의 교제를 깨뜨릴 수 있는 교리, 이념, 정치성향 등과 같은 논쟁적 발언이나 특정한 대상에 대한 비판적 발언을 하지 않기로 서약한다.</div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80"><span class="font-bold text-slate-700 mr-1.5">[목장원 6]</span> 무엇보다 목장교회원 상호간에 어려움을 극복할 수 있도록 기도의 짐을 지고 중보기도에 최선을 다하기로 약속한다.</div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70"><span class="font-bold text-indigo-700 mr-1.5">[목자 7]</span> 우리는 자기 자신의 삶의 어려움이나 문제가 있을 때는 할 수 있는 한 서로의 기도제목을 거리낌 없이 신속하게 목장교회에 알리고, 위하여 기도하기로 언약한다.</div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80"><span class="font-bold text-slate-700 mr-1.5">[목장원 8]</span> 우리는 목장교회원 상호간에 어려움을 돕는 일에 최선을 다하되, 그로 말미암은 불필요한 오해나 교제의 부담이 없도록 하기 위하여 꾸거나, 꾸어 주는 일들의 돈거래 그리고 계모임 등은 일체 하지 않기로 언약한다.</div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/40 border border-indigo-100/70"><span class="font-bold text-indigo-700 mr-1.5">[목자 9]</span> 우리들의 목장교회를 통하여 주님을 닮아가며 주 뜻대로 살아가고자 주께서 명하신 성령충만을 이루기 위하여 성령충만을 방해하는 주류사용(술 취함), 불건전한 오락(도박), 그리고 교회나 개인에 대한 비방을 일체 금하기로 한다.</div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80"><span class="font-bold text-slate-700 mr-1.5">[목장원 10]</span> 말씀과 기도는 우리들의 교제의 수단이며, 거룩함은 우리들의 교제의 태도이며, 세계선교와 이웃사랑은 우리들의 교제의 궁극적인 목표임을 우리는 명심할 것이다.</div>
                     </div>
 
                     <div class="pt-3 text-center font-bold text-slate-800 border-t border-slate-100 text-xs sm:text-sm">
@@ -611,7 +762,6 @@
                     </div>
                 </div>
 
-                <!-- 목자 서약서 -->
                 <div id="tabContentPledge" class="hidden space-y-3">
                     <div class="bg-amber-50/80 border border-amber-200/70 rounded-xl p-3 text-center mb-3">
                         <h4 class="font-bold text-amber-950 text-sm sm:text-base">목장교회 목자 서약서</h4>
@@ -666,8 +816,6 @@
             </div>
 
             <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
-                
-                <!-- [추가] 호실 안내 섹션 -->
                 <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 shadow-xs">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-5 h-5 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-700">
@@ -768,11 +916,70 @@
     </footer>
 
     <script>
+        // 1. 기존 모임자료 API URL
         const API_URL = "https://script.google.com/macros/s/AKfycbxoB5pdQ5oWUWMFCE1O7RVQHB_NyuvzeeePbbJ7qvOOvv0P4YfC8P5I3AzacKysw1ytng/exec";
         const CACHE_KEY = "gchurch_cell_data_cache";
 
+        // 2. 셀방 예약 API URL
         const ROOM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfr17L6x5hPItZ1V5W6XlH2wKWipUJwDhECjVImKw3D0_o9WS4rvaxDQBjG0sZwrSByA/exec';
         const ROOM_CACHE_KEY = "gchurch_room_reservation_cache";
+
+        // 3. [신규] 보고서 저장 & 시트 조회용 Apps Script URL
+        // 위 1번 단계에서 새로 배포한 웹 앱 URL을 여기에 넣어주세요!
+        const REPORT_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbylusapBoblgBSCFswZ9_YQKdo46GCwY7aDD9EEr_fcMJSO4yhhGU9XJCGCfYrI1YSbTw/exec";
+
+        // 9개 목장 전용 인증 ID & 패스워드
+// 9개 목장 계정 및 담당 마을/목장 권한 설정
+        const AUTH_ACCOUNTS = {
+            "leader1": { 
+                pw: "pass1001", 
+                name: "부부 1마을 목자", 
+                allowedGroups: ["비전", "아론과 훌", "아론과훌", "이음", "열린문", "파밀리아"] 
+            },
+            "leader2": { 
+                pw: "pass1002", 
+                name: "자매 1마을 목자", 
+                allowedGroups: ["라합", "봄날", "햇빛", "함께하는"] 
+            },
+            "leader3": { 
+                pw: "pass1003", 
+                name: "자매 4마을 목자", 
+                allowedGroups: ["겸손", "아우디", "에벤에셀", "예사랑"] 
+            },
+            "leader4": { 
+                pw: "pass1004", 
+                name: "형제/특성화마을 목자", 
+                allowedGroups: ["기도", "샬롬", "예문", "M60"] 
+            },
+            "leader5": { 
+                pw: "pass1005", 
+                name: "부부 2마을 목자", 
+                allowedGroups: ["섬김알파", "카이로스", "셀라"] 
+            },
+            "leader6": { 
+                pw: "pass1006", 
+                name: "부부 3마을 목자", 
+                allowedGroups: ["방주", "은혜", "지구촌"] 
+            },
+            "leader7": { 
+                pw: "pass1007", 
+                name: "자매 2마을 목자", 
+                allowedGroups: ["루디아", "베다니", "소망", "아시는", "희락"] 
+            },
+            "leader8": { 
+                pw: "pass1008", 
+                name: "자매 3마을 목자", 
+                allowedGroups: ["아하브", "지혜"] 
+            },
+            "leader9": { 
+                pw: "pass1009", 
+                name: "총괄 관리자", 
+                allowedGroups: "ALL" // 전체 조회 권한
+            }
+        };
+
+        let currentSheetAuth = null;
+        let cachedSheetData = null;
 
         const times = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
         const rooms = ['601','602','603','604','605','606','607','611','612','613'];
@@ -835,12 +1042,437 @@
                 } catch(e) {}
             }
 
+// 기존 코드:
+// const savedAuth = sessionStorage.getItem("sheet_auth_user");
+// if (savedAuth && AUTH_ACCOUNTS[savedAuth]) {
+//     currentSheetAuth = { id: savedAuth, name: AUTH_ACCOUNTS[savedAuth].name };
+// }
+
+// ▼ 아래와 같이 allowedGroups를 반드시 포함하여 복원하도록 변경 ▼
+const savedAuth = sessionStorage.getItem("sheet_auth_user");
+if (savedAuth && AUTH_ACCOUNTS[savedAuth]) {
+    currentSheetAuth = { 
+        id: savedAuth, 
+        name: AUTH_ACCOUNTS[savedAuth].name,
+        allowedGroups: AUTH_ACCOUNTS[savedAuth].allowedGroups 
+    };
+}
+
             setTimeout(forceHideLoading, 300);
 
             fetchLatestData();
             try { initRoomReservationData(); } catch(e){}
         });
 
+        // --- [신규] 웹 내부 보고서 입력 모달 제어 및 제출 ---
+        function openReportModal() {
+            const m = document.getElementById('reportModal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                if (!document.getElementById('repDate').value) {
+                    document.getElementById('repDate').value = getTodayString();
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function closeReportModal() {
+            const m = document.getElementById('reportModal');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        }
+
+        async function handleReportSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('reportSubmitBtn');
+            const msg = document.getElementById('reportStatusMessage');
+
+            btn.disabled = true;
+            btn.innerHTML = `<div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div> 저장 중...`;
+            msg.classList.add('hidden');
+
+            const payload = {
+                group: document.getElementById('repGroup').value.trim(),
+                leader: document.getElementById('repLeader').value.trim(),
+                date: document.getElementById('repDate').value,
+                place: document.getElementById('repPlace').value.trim(),
+                attendees_count: document.getElementById('repCount').value,
+                attendees: document.getElementById('repAttendees').value.trim(),
+                summary: document.getElementById('repSummary').value.trim(),
+                prayers: document.getElementById('repPrayers').value.trim(),
+                suggestions: document.getElementById('repSuggestions').value.trim()
+            };
+
+            try {
+                await fetch(REPORT_SHEET_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                msg.className = "p-2.5 rounded-lg text-center text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+                msg.innerText = "목장 모임 보고서가 구글 시트에 성공적으로 등록되었습니다!";
+
+                setTimeout(() => {
+                    document.getElementById('directReportForm').reset();
+                    closeReportModal();
+                    msg.classList.add('hidden');
+                }, 1500);
+            } catch(err) {
+                msg.className = "p-2.5 rounded-lg text-center text-xs font-bold bg-red-50 text-red-700 border border-red-200 block";
+                msg.innerText = "전송 중 오류가 발생했습니다. 다시 시도해 주세요.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5"></i> 보고서 시트에 등록하기`;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        // --- 9개 계정 인증 & 시트 조회 로직 ---
+        function handleSheetAuthClick() {
+            if (currentSheetAuth) {
+                openSheetViewerModal();
+            } else {
+                openSheetLoginModal();
+            }
+        }
+
+        function openSheetLoginModal() {
+            const m = document.getElementById('sheetLoginModal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                document.getElementById('sheetLoginError').classList.add('hidden');
+                document.getElementById('sheetAuthId').value = "";
+                document.getElementById('sheetAuthPw').value = "";
+                document.getElementById('sheetAuthId').focus();
+            }
+        }
+
+        function closeSheetLoginModal() {
+            const m = document.getElementById('sheetLoginModal');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        }
+
+function handleSheetLogin(e) {
+    e.preventDefault();
+    const id = document.getElementById('sheetAuthId').value.trim();
+    const pw = document.getElementById('sheetAuthPw').value.trim();
+    const err = document.getElementById('sheetLoginError');
+
+    if (AUTH_ACCOUNTS[id] && AUTH_ACCOUNTS[id].pw === pw) {
+        currentSheetAuth = { 
+            id: id, 
+            name: AUTH_ACCOUNTS[id].name,
+            allowedGroups: AUTH_ACCOUNTS[id].allowedGroups 
+        };
+        sessionStorage.setItem("sheet_auth_user", id);
+        closeSheetLoginModal();
+        openSheetViewerModal();
+    } else {
+        err.classList.remove('hidden');
+    }
+}
+
+        function logoutSheetSession() {
+            currentSheetAuth = null;
+            sessionStorage.removeItem("sheet_auth_user");
+            closeSheetViewerModal();
+        }
+
+        function openSheetViewerModal() {
+            const m = document.getElementById('sheetViewerModal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+                const badge = document.getElementById('currentLoggedUserBadge');
+                if (badge && currentSheetAuth) badge.textContent = `${currentSheetAuth.name} 접속중`;
+                fetchSheetResponses();
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function closeSheetViewerModal() {
+            const m = document.getElementById('sheetViewerModal');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        }
+
+// 시트 데이터 불러오기 (JSONP 직결 호출 및 타임아웃 방지)
+        function fetchSheetResponses(force = false) {
+            const loader = document.getElementById('sheetLoadingIndicator');
+            const cardWrap = document.getElementById('sheetCardContainer');
+            const emptyNotice = document.getElementById('sheetEmptyNotice');
+
+            loader.classList.remove('hidden');
+            cardWrap.classList.add('hidden');
+            emptyNotice.classList.add('hidden');
+
+            const oldScript = document.getElementById('gas-report-sheet-jsonp');
+            if (oldScript) oldScript.remove();
+
+            // 10초 이상 응답 없을 시 로딩 해제 처리
+            const timeoutTimer = setTimeout(() => {
+                if (!loader.classList.contains('hidden')) {
+                    loader.classList.add('hidden');
+                    emptyNotice.textContent = "데이터 응답 시간이 초과되었습니다. 구글 앱스 스크립트 배포 상태와 권한을 확인해주세요.";
+                    emptyNotice.classList.remove('hidden');
+                }
+            }, 10000);
+
+            window.onReportSheetDataReceived = function(data) {
+                clearTimeout(timeoutTimer);
+                renderSheetTable(data);
+            };
+
+            const script = document.createElement('script');
+            script.id = 'gas-report-sheet-jsonp';
+            script.src = `${REPORT_SHEET_API_URL}?action=read&callback=onReportSheetDataReceived&t=${new Date().getTime()}`;
+            script.onerror = function() {
+                clearTimeout(timeoutTimer);
+                loader.classList.add('hidden');
+                emptyNotice.textContent = "시트 데이터를 불러오지 못했습니다. 앱스 스크립트 URL을 확인해 주세요.";
+                emptyNotice.classList.remove('hidden');
+            };
+            document.body.appendChild(script);
+        }
+
+        function fetchSheetResponsesJSONP() {
+            const old = document.getElementById('gas-report-sheet-jsonp');
+            if (old) old.remove();
+
+            const script = document.createElement('script');
+            script.id = 'gas-report-sheet-jsonp';
+            script.src = `${REPORT_SHEET_API_URL}?action=read&callback=onReportSheetDataReceived&t=${new Date().getTime()}`;
+            script.onerror = function() {
+                const loader = document.getElementById('sheetLoadingIndicator');
+                const emptyNotice = document.getElementById('sheetEmptyNotice');
+                loader.classList.add('hidden');
+                emptyNotice.textContent = "데이터를 불러오는 중 연결 오류가 발생했습니다. 구글 앱스 스크립트 배포 URL을 확인해주세요.";
+                emptyNotice.classList.remove('hidden');
+            };
+            document.body.appendChild(script);
+        }
+
+// 1. 로그인된 계정의 열람 권한 검사 함수
+function isRowAccessible(row) {
+    if (!currentSheetAuth) return false;
+    if (currentSheetAuth.allowedGroups === "ALL") return true;
+
+    // 1. row 객체에서 목장명 컬럼 값 탐색
+    let rawGroupName = "";
+    
+    // 직접 지정된 주요 키 우선 확인
+    if (row["목장명"]) rawGroupName = row["목장명"];
+    else if (row["목장"]) rawGroupName = row["목장"];
+    else {
+        // 키 이름에 '목장' 글자가 들어간 열 자동 탐색
+        for (let key in row) {
+            if (key.replace(/\s+/g, '').includes("목장")) {
+                rawGroupName = row[key];
+                break;
+            }
+        }
+    }
+
+    if (!rawGroupName) return false;
+
+    // 공백, 특수문자 제거 및 소문자 정규화
+    const cleanGroupName = String(rawGroupName).replace(/\s+/g, '').toLowerCase();
+    if (!cleanGroupName) return false;
+
+    // 2. 허용 목록 대조
+    return currentSheetAuth.allowedGroups.some(target => {
+        const cleanTarget = String(target).replace(/\s+/g, '').toLowerCase();
+        if (!cleanTarget) return false;
+
+        // 예: 입력값이 "섬김알파목장"이고 타겟이 "섬김알파"인 경우 또는 완전히 일치하는 경우
+        return cleanGroupName.includes(cleanTarget) || cleanGroupName === cleanTarget;
+    });
+}
+
+        // 2. 권한에 맞는 행만 걸러서 화면에 출력하는 함수
+// 1. 카드 렌더링 준비 및 권한 필터링 함수
+        function renderSheetTable(data) {
+            const loader = document.getElementById('sheetLoadingIndicator');
+            const cardWrap = document.getElementById('sheetCardContainer');
+            const emptyNotice = document.getElementById('sheetEmptyNotice');
+            const count = document.getElementById('sheetRecordCount');
+
+            loader.classList.add('hidden');
+
+            if (!data || !data.rows || data.rows.length === 0) {
+                cardWrap.classList.add('hidden');
+                emptyNotice.textContent = "등록된 목장 보고서 내역이 없습니다.";
+                emptyNotice.classList.remove('hidden');
+                count.textContent = "총 0건";
+                return;
+            }
+
+            // 계정별 권한 필터링
+            const authorizedRows = data.rows.filter(isRowAccessible);
+
+            cachedSheetData = {
+                headers: data.headers,
+                rows: authorizedRows
+            };
+
+            if (authorizedRows.length === 0) {
+                cardWrap.classList.add('hidden');
+                emptyNotice.textContent = "조회 권한이 있는 목장의 제출 내역이 없습니다.";
+                emptyNotice.classList.remove('hidden');
+                count.textContent = "총 0건";
+                return;
+            }
+
+            emptyNotice.classList.add('hidden');
+            cardWrap.classList.remove('hidden');
+
+            buildSheetRows(authorizedRows, data.headers);
+        }
+
+        // 2. 개별 보고서를 보기 편한 세로 카드형으로 생성
+        function buildSheetRows(rows, headers) {
+            const container = document.getElementById('sheetCardContainer');
+            const count = document.getElementById('sheetRecordCount');
+            container.innerHTML = "";
+            count.textContent = `총 ${rows.length}건`;
+
+            rows.forEach((row) => {
+                // 주요 항목 값 추출 (헤더 이름 유연하게 대응)
+                const getVal = (keyPattern) => {
+                    for (let k in row) {
+                        if (k.replace(/\s+/g, '').includes(keyPattern)) return row[k];
+                    }
+                    return "";
+                };
+
+                const group = getVal("목장명") || getVal("목장") || "목장 미입력";
+                const leader = getVal("작성자") || getVal("목자") || "목자 미기재";
+                const mDate = formatToDateOnly(getVal("모임일자") || getVal("모임일"));
+                const subDate = formatToDateOnly(getVal("제출일시") || getVal("타임스탬프"));
+                const place = getVal("모임장소") || getVal("장소");
+                const countNum = getVal("참석인원") || getVal("인원");
+                const attendees = getVal("참석자명단") || getVal("참석자");
+                const summary = getVal("나눔요약") || getVal("삶의나눔") || getVal("말씀");
+                const prayers = getVal("기도제목") || getVal("중보기도");
+                const suggestions = getVal("건의사항") || getVal("소식");
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3 transition-all hover:border-sky-300";
+
+                card.innerHTML = `
+                    <!-- 1. 카드 헤더: 목장명 / 목자 / 날짜 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold text-sm border border-sky-200/60 flex items-center gap-1">
+                                <i data-lucide="church" class="w-3.5 h-3.5"></i> ${group}
+                            </span>
+                            <span class="text-xs font-semibold text-slate-700">목자: <b>${leader}</b></span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-400">
+                            <span>📅 모임일: <b class="text-slate-600">${mDate || '미기재'}</b></span>
+                            ${subDate ? `<span class="hidden sm:inline">| 제출: ${subDate}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- 2. 부가 정보 (장소, 인원, 명단) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <div class="flex items-center gap-1.5 text-slate-600">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                            <span>장소: <b>${place || '미기재'}</b></span>
+                            ${countNum ? `<span class="ml-2 text-sky-600 font-semibold">(${countNum}명 참석)</span>` : ''}
+                        </div>
+                        <div class="flex items-start gap-1.5 text-slate-600">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5"></i>
+                            <span class="truncate">참석: <b>${attendees || '명단 없음'}</b></span>
+                        </div>
+                    </div>
+
+                    <!-- 3. 본문 세부 내용 (나눔, 기도제목, 건의사항) -->
+                    <div class="space-y-2.5 pt-1 text-xs sm:text-[13px] leading-relaxed">
+                        ${summary ? `
+                        <div class="bg-amber-50/40 rounded-lg p-3 border border-amber-100/70">
+                            <span class="font-bold text-amber-900 flex items-center gap-1.5 mb-1 text-xs">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-600"></i> 말씀 및 삶의 나눔 요약
+                            </span>
+                            <p class="text-slate-700 whitespace-pre-wrap pl-5">${summary}</p>
+                        </div>` : ''}
+
+                        ${prayers ? `
+                        <div class="bg-teal-50/40 rounded-lg p-3 border border-teal-100/70">
+                            <span class="font-bold text-teal-900 flex items-center gap-1.5 mb-1 text-xs">
+                                <i data-lucide="heart-handshake" class="w-3.5 h-3.5 text-teal-600"></i> 중보기도 제목
+                            </span>
+                            <p class="text-slate-700 whitespace-pre-wrap pl-5">${prayers}</p>
+                        </div>` : ''}
+
+                        ${suggestions ? `
+                        <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200/70">
+                            <span class="font-bold text-slate-700 flex items-center gap-1.5 mb-1 text-xs">
+                                <i data-lucide="help-circle" class="w-3.5 h-3.5 text-slate-500"></i> 건의 및 전달사항
+                            </span>
+                            <p class="text-slate-600 whitespace-pre-wrap pl-5">${suggestions}</p>
+                        </div>` : ''}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // 3. 검색 필터 함수 (카드 전체 텍스트 검색)
+        function filterSheetTable() {
+            if (!cachedSheetData) return;
+            const query = document.getElementById('sheetSearchInput').value.trim().toLowerCase();
+            if (!query) {
+                buildSheetRows(cachedSheetData.rows, cachedSheetData.headers);
+                return;
+            }
+
+            const filtered = cachedSheetData.rows.filter(row => {
+                return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+            });
+            buildSheetRows(filtered, cachedSheetData.headers);
+        }
+// 날짜/일시 값을 YYYY-MM-DD(년-월-일) 형식으로 변환하는 함수
+        function formatToDateOnly(val) {
+            if (!val) return "";
+            const strVal = String(val).trim();
+
+            // 1. ISO 날짜 형식 (예: 2026-10-06T04:52:04.000Z) 처리
+            if (strVal.includes('T')) {
+                const dateObj = new Date(strVal);
+                if (!isNaN(dateObj.getTime())) {
+                    const y = dateObj.getFullYear();
+                    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const d = String(dateObj.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+                return strVal.split('T')[0];
+            }
+
+            // 2. YYYY-MM-DD HH:mm:ss 형식 처리
+            const match = strVal.match(/^(\d{4}[-/.]\d{1,2}[-/.]\d{1,2})/);
+            if (match) {
+                return match[1].replace(/[/.]/g, '-');
+            }
+
+            return strVal;
+        }
+
+        // --- 기존 모임자료 및 셀방 로직 유지 ---
         function sortAndSanitizeData(rawData) {
             if (!Array.isArray(rawData)) return [];
             return rawData
